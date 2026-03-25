@@ -52,7 +52,6 @@ create policy "Users can update their own profile"
 create table if not exists public.user_stats (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.profiles(user_id) on delete cascade unique not null,
-    best_ent_score integer default 0,
     total_tests_completed integer default 0,
     average_score numeric(6,2) default 0,
     last_test_date timestamptz,
@@ -60,14 +59,16 @@ create table if not exists public.user_stats (
     total_tests integer default 0,
     guess_streak integer default 0,
     guess_best_streak integer default 0,
-    ent_best_score integer default 0,
-    ent_tests_completed integer default 0,
     created_at timestamptz default now(),
     updated_at timestamptz default now()
 );
 
 create index if not exists idx_user_stats_user_id on public.user_stats(user_id);
-create index if not exists idx_user_stats_best_ent_score on public.user_stats(best_ent_score desc);
+-- Cleanup legacy ENT score fields from older deployments.
+drop index if exists idx_user_stats_best_ent_score;
+alter table public.user_stats drop column if exists best_ent_score;
+alter table public.user_stats drop column if exists ent_best_score;
+alter table public.user_stats drop column if exists ent_tests_completed;
 
 alter table public.user_stats enable row level security;
 
@@ -345,6 +346,21 @@ create index if not exists idx_assistant_events_user_id on public.assistant_even
 create index if not exists idx_assistant_events_session_id on public.assistant_events(session_id);
 create index if not exists idx_assistant_events_created_at on public.assistant_events(created_at desc);
 
+-- Extend assistant events to capture richer telemetry and context.
+alter table public.assistant_events add column if not exists event_name varchar(120);
+alter table public.assistant_events add column if not exists category varchar(80);
+alter table public.assistant_events add column if not exists page_context jsonb not null default '{}'::jsonb;
+alter table public.assistant_events add column if not exists details jsonb not null default '{}'::jsonb;
+alter table public.assistant_events add column if not exists client_ts timestamptz;
+alter table public.assistant_events add column if not exists confidence numeric(4,3);
+alter table public.assistant_events add column if not exists severity varchar(20);
+alter table public.assistant_events add column if not exists metadata jsonb not null default '{}'::jsonb;
+alter table public.assistant_events add column if not exists duration_ms integer;
+
+create index if not exists idx_assistant_events_event_type on public.assistant_events(event_type);
+create index if not exists idx_assistant_events_event_name on public.assistant_events(event_name);
+create index if not exists idx_assistant_events_route on public.assistant_events(route);
+
 alter table public.assistant_events enable row level security;
 
 drop policy if exists "Users can view their own assistant events" on public.assistant_events;
@@ -360,6 +376,120 @@ create policy "Users can insert their own assistant events"
 drop policy if exists "Users can delete their own assistant events" on public.assistant_events;
 create policy "Users can delete their own assistant events"
   on public.assistant_events for delete
+  using (auth.uid() = user_id);
+
+-- ==================== ASSISTANT MEMORY EXTENSIONS ====================
+-- Session lifecycle and quality fields.
+alter table public.assistant_sessions add column if not exists status varchar(20) not null default 'active';
+alter table public.assistant_sessions add column if not exists quality_score integer not null default 0;
+alter table public.assistant_sessions add column if not exists summary text not null default '';
+alter table public.assistant_sessions add column if not exists closed_at timestamptz;
+alter table public.assistant_sessions add column if not exists abandoned_at timestamptz;
+alter table public.assistant_sessions add column if not exists conversation_turns integer not null default 0;
+alter table public.assistant_sessions add column if not exists fallback_count integer not null default 0;
+alter table public.assistant_sessions add column if not exists last_error_code varchar(80);
+alter table public.assistant_sessions add column if not exists last_model varchar(80);
+
+create index if not exists idx_assistant_sessions_status on public.assistant_sessions(status);
+create index if not exists idx_assistant_sessions_quality on public.assistant_sessions(quality_score desc);
+
+-- Message-level observability fields.
+alter table public.assistant_messages add column if not exists turn_id uuid default gen_random_uuid();
+alter table public.assistant_messages add column if not exists latency_ms integer;
+alter table public.assistant_messages add column if not exists model_used varchar(80);
+alter table public.assistant_messages add column if not exists fallback_used boolean not null default false;
+alter table public.assistant_messages add column if not exists error_code varchar(80);
+alter table public.assistant_messages add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+create index if not exists idx_assistant_messages_turn_id on public.assistant_messages(turn_id);
+create index if not exists idx_assistant_messages_model on public.assistant_messages(model_used);
+
+-- Aggregated per-user assistant state.
+create table if not exists public.assistant_user_state (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade unique not null,
+    preferred_language varchar(12) default 'kk',
+    preferred_difficulty varchar(20) default 'medium',
+    response_style varchar(40) default 'concise',
+    learning_goals jsonb not null default '[]'::jsonb,
+    weak_topics jsonb not null default '[]'::jsonb,
+    strong_topics jsonb not null default '[]'::jsonb,
+    recent_routes jsonb not null default '[]'::jsonb,
+    last_active_route varchar(80),
+    total_events integer not null default 0,
+    total_quizzes integer not null default 0,
+    successful_quizzes integer not null default 0,
+    average_quiz_percent numeric(6,2) not null default 0,
+    last_seen_at timestamptz default now(),
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+create index if not exists idx_assistant_user_state_user_id on public.assistant_user_state(user_id);
+create index if not exists idx_assistant_user_state_last_seen on public.assistant_user_state(last_seen_at desc);
+
+alter table public.assistant_user_state enable row level security;
+
+drop policy if exists "Users can view their own assistant user state" on public.assistant_user_state;
+create policy "Users can view their own assistant user state"
+  on public.assistant_user_state for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant user state" on public.assistant_user_state;
+create policy "Users can insert their own assistant user state"
+  on public.assistant_user_state for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own assistant user state" on public.assistant_user_state;
+create policy "Users can update their own assistant user state"
+  on public.assistant_user_state for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant user state" on public.assistant_user_state;
+create policy "Users can delete their own assistant user state"
+  on public.assistant_user_state for delete
+  using (auth.uid() = user_id);
+
+-- Long-lived facts extracted from user behavior/conversation.
+create table if not exists public.assistant_user_facts (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    fact_key varchar(160) not null,
+    fact_value text not null,
+    confidence numeric(4,3) not null default 0.5,
+    source_event_id uuid references public.assistant_events(id) on delete set null,
+    source_session_id uuid references public.assistant_sessions(id) on delete set null,
+    active boolean not null default true,
+    expires_at timestamptz,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now(),
+    unique(user_id, fact_key)
+);
+
+create index if not exists idx_assistant_user_facts_user_id on public.assistant_user_facts(user_id);
+create index if not exists idx_assistant_user_facts_active on public.assistant_user_facts(active);
+create index if not exists idx_assistant_user_facts_confidence on public.assistant_user_facts(confidence desc);
+
+alter table public.assistant_user_facts enable row level security;
+
+drop policy if exists "Users can view their own assistant user facts" on public.assistant_user_facts;
+create policy "Users can view their own assistant user facts"
+  on public.assistant_user_facts for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant user facts" on public.assistant_user_facts;
+create policy "Users can insert their own assistant user facts"
+  on public.assistant_user_facts for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own assistant user facts" on public.assistant_user_facts;
+create policy "Users can update their own assistant user facts"
+  on public.assistant_user_facts for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant user facts" on public.assistant_user_facts;
+create policy "Users can delete their own assistant user facts"
+  on public.assistant_user_facts for delete
   using (auth.uid() = user_id);
 
 -- ==================== updated_at helper ====================
@@ -396,6 +526,16 @@ create trigger update_tests_updated_at
 drop trigger if exists update_assistant_sessions_updated_at on public.assistant_sessions;
 create trigger update_assistant_sessions_updated_at
   before update on public.assistant_sessions
+  for each row execute function public.update_updated_at_column();
+
+drop trigger if exists update_assistant_user_state_updated_at on public.assistant_user_state;
+create trigger update_assistant_user_state_updated_at
+  before update on public.assistant_user_state
+  for each row execute function public.update_updated_at_column();
+
+drop trigger if exists update_assistant_user_facts_updated_at on public.assistant_user_facts;
+create trigger update_assistant_user_facts_updated_at
+  before update on public.assistant_user_facts
   for each row execute function public.update_updated_at_column();
 
 -- ==================== Auto-create defaults on signup ====================
