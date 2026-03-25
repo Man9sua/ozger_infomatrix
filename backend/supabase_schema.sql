@@ -1,13 +1,9 @@
 -- ==================== OZGER SUPABASE SCHEMA (Node backend compatible) ====================
--- Run this in Supabase SQL Editor to create required tables for `backend/server.js`
---
 -- Tables used by the backend:
 -- - profiles
 -- - user_stats
 -- - materials
 -- - favorites (favorites of materials)
-
--- UUID helpers (Supabase usually already has this, but safe to include)
 create extension if not exists "pgcrypto";
 
 -- ==================== PROFILES ====================
@@ -169,7 +165,6 @@ create table if not exists public.tests (
     questions jsonb not null default '[]'::jsonb,
     is_public boolean default true,
     author varchar(200),
-    -- "stars" system: how many users saved the test (favorites)
     favorite_count integer default 0,
     count integer default 0,
     created_at timestamptz default now(),
@@ -233,7 +228,7 @@ create policy "Users can remove from favorites (tests)"
   on public.user_favorites for delete
   using (auth.uid() = user_id);
 
--- Maintain tests.favorite_count automatically (stars system)
+
 create or replace function public.update_test_favorite_count()
 returns trigger
 language plpgsql
