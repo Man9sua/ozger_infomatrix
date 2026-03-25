@@ -1,0 +1,12 @@
+name = "ozger"
+main = "cloudflare/worker.js"
+compatibility_date = "2024-12-01"
+workers_dev = true
+
+# Optional custom-domain routes.
+# Keep empty by default so deploy works from any account on *.workers.dev.
+# To use your own domain, add your zone-specific routes back here.
+
+[assets]
+directory = "frontend"
+binding = "ASSETS"

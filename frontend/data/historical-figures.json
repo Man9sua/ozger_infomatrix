@@ -1,0 +1,266 @@
+{
+  "figures": [
+    {
+      "id": 1,
+      "name": {
+        "kk": "Шыңғыс хан (Тэмүжін)",
+        "ru": "Чингисхан (Тэмуджин)",
+        "en": "Genghis Khan (Temüjin)"
+      },
+      "facts": [
+        {
+          "level": 1,
+          "text": {
+            "kk": "Қият тайпасындағы ақсүйек батыр Есугейдің отбасында туылған",
+            "ru": "Родился в семье знатного воина Есугея из племени кият",
+            "en": "Born into the family of the noble warrior Yesugei from the Kiyat clan"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "Қазақстан аумағына жорығын 150-200 мың әскермен бастады",
+            "ru": "Начал поход на территорию Казахстана с армией в 150–200 тысяч воинов",
+            "en": "Began the campaign into the territory of Kazakhstan with an army of 150–200 thousand soldiers"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "Өз халқына: «Мен өз бетінше жүрген ұсақ билеушілерді, мұқтаждыққа және езгіде жүрген адамдарды бағындырдым, мен оларды жинап біртұтас еттім» деп мәлімдеген",
+            "ru": "Заявлял своему народу: «Я подчинил мелких правителей, живших сами по себе, и людей, пребывавших в нужде и под гнётом; я собрал их и сделал единым целым»",
+            "en": "He declared to his people: “I subdued petty rulers who went their own way and people living in need and oppression; I gathered them and made them one”"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Отырар, Ашнас, Сығанақ қалаларын толықтай қиратты",
+            "ru": "Полностью разрушил города Отрар, Ашнас и Сыгнак",
+            "en": "Completely devastated the cities of Otrar, Ashnas, and Sygnak"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "«Яса» заң жинағын шығарды",
+            "ru": "Издал свод законов «Яса»",
+            "en": "Issued the law code “Yassa”"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Өз мемлекетінің орталығын Қарақорымда орналастырды",
+            "ru": "Разместил столицу своего государства в Каракоруме",
+            "en": "Established his state’s capital in Karakorum"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "XIII ғасырда түгел Дешті Қыпшақты өз қолына алған",
+            "ru": "В XIII веке подчинил себе весь Дешт-и Кыпчак",
+            "en": "In the 13th century, brought the whole Desht-i Kipchak under his control"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығындағы хандық шежіресінің бастамасы ретінде аталады",
+            "ru": "Считается одним из истоков ханской родословной в истории Казахского ханства",
+            "en": "Considered one of the origins of the khan lineage in the history of the Kazakh Khanate"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Дүниежүзіндегі ең танымал билік басыларының бірі",
+            "ru": "Один из самых известных правителей в мировой истории",
+            "en": "One of the most well-known rulers in world history"
+          }
+        }
+      ],
+      "info": {
+        "kk": "",
+        "ru": "",
+        "en": ""
+      }
+    },
+    {
+      "id": 2,
+      "name": {
+        "kk": "Кенесары Қасымұлы",
+        "ru": "Кенесары Касымов",
+        "en": "Kenesary Kasymov"
+      },
+      "facts": [
+        {
+          "level": 1,
+          "text": {
+            "kk": "Л. Мейер: «Осы тұлғаға көзсіз ерлік тән еді»",
+            "ru": "Л. Мейер: «Этой личности была присуща беззаветная храбрость»",
+            "en": "L. Meyer: “This figure possessed fearless, selfless courage”"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "Ресейлік ғалымдар осы тұлғаны «Қырғыз даласының Митридаты» деп атаған",
+            "ru": "Российские учёные называли его «Митридатом Киргизской степи»",
+            "en": "Russian scholars called him “the Mithridates of the Kyrgyz steppe”"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "Ахмед Жантөринмен екі рет соғысып, екеуінде жеңіп шыққан",
+            "ru": "Дважды сражался с Ахмедом Жантёриным и оба раза одержал победу",
+            "en": "Fought Ahmed Zhantorin twice and won both times"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Қол астында тұрақты 20 мың сарбазы болды",
+            "ru": "Имея под началом постоянное войско численностью около 20 тысяч",
+            "en": "Maintained a standing force of around 20 thousand soldiers"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Осы тұлғаның басына 3000 сом, тірідей 5000 сом сый орнатылды",
+            "ru": "За его голову назначали 3000 рублей, а за поимку живым — 5000 рублей",
+            "en": "A reward of 3000 rubles was offered for his head, and 5000 for capturing him alive"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Кекіліксеңгір шайқасында інісімен бірге қаза табады",
+            "ru": "Погиб вместе с братом в сражении при Кекликсенгире",
+            "en": "Died together with his brother in the Battle of Kekliksengir"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "XIX ғасырда үш жүзді қамтыған тұңғыш артиллериялық көтеріліс басшысы",
+            "ru": "Первый руководитель артиллерийского восстания XIX века, охватившего все три жуза",
+            "en": "The first leader of an artillery uprising in the 19th century that involved all three zhuzes"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығындағы Абылай ханның немересі",
+            "ru": "Внук Абылай-хана (Казахское ханство)",
+            "en": "Grandson of Ablai Khan (Kazakh Khanate)"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығының соңғы ханы",
+            "ru": "Последний хан Казахского ханства",
+            "en": "The last khan of the Kazakh Khanate"
+          }
+        }
+      ],
+      "info": {
+        "kk": "",
+        "ru": "",
+        "en": ""
+      }
+    },
+    {
+      "id": 3,
+      "name": {
+        "kk": "Қасым хан",
+        "ru": "Касым хан",
+        "en": "Kasym Khan"
+      },
+      "facts": [
+        {
+          "level": 1,
+          "text": {
+            "kk": "Осы тұлғаның Сырдарияға жорығы барысында Сайрам қаласы соғыссыз берілді",
+            "ru": "Во время похода к Сырдарье город Сайрам сдался без боя",
+            "en": "During the campaign toward the Syr Darya, the city of Sairam surrendered without a fight"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "М.Х. Дулати: «Жошы ханнан кейін ешкім Дешті Қыпшақты осы тұлғадай билей алмады»",
+            "ru": "М.Х. Дулати: «После Жошы-хана никто не смог править Дешт-и Кыпчаком так, как эта личность»",
+            "en": "M.Kh. Dulati: “After Jochi Khan, no one could rule the Desht-i Kipchak like this figure did”"
+          }
+        },
+        {
+          "level": 1,
+          "text": {
+            "kk": "Сырдария бойындағы қалаларға билік орнатты",
+            "ru": "Установил власть над городами вдоль Сырдарьи",
+            "en": "Established control over cities along the Syr Darya"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Өз заңдар жинағында мүлік, қылмыс, әскер, елшілік жоралары, жұртшылық мәселелерін қамтыған",
+            "ru": "В своём своде законов охватил вопросы имущества, преступлений, войска, посольских обычаев и общественных норм",
+            "en": "In his law code he covered property, crimes, the army, diplomatic customs, and community rules"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Ол 300 мың адамға дейін қарулы жауынгер шығара алды",
+            "ru": "Мог выставить вооружённое войско численностью до 300 тысяч человек",
+            "en": "Could field an armed force of up to 300 thousand warriors"
+          }
+        },
+        {
+          "level": 2,
+          "text": {
+            "kk": "Қол астында халық саны бір миллион адамнан асты",
+            "ru": "Численность населения под его властью превышала один миллион",
+            "en": "The population under his rule exceeded one million"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығының төртінші ханы",
+            "ru": "Четвёртый хан Казахского ханства",
+            "en": "The fourth khan of the Kazakh Khanate"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығын 1511-1518(23) жылдары билік еткен",
+            "ru": "Правил Казахским ханством в 1511–1518 (по некоторым данным — до 1523) годах",
+            "en": "Ruled the Kazakh Khanate in 1511–1518 (some sources: until 1523)"
+          }
+        },
+        {
+          "level": 3,
+          "text": {
+            "kk": "Қазақ хандығының алғаш хандарының бірі Жәнібек ханның ұлы",
+            "ru": "Сын Жанибек-хана — одного из первых ханов Казахского ханства",
+            "en": "Son of Janibek Khan, one of the first khans of the Kazakh Khanate"
+          }
+        }
+      ],
+      "info": {
+        "kk": "",
+        "ru": "",
+        "en": ""
+      }
+    }
+
+  ]
+}

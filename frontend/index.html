@@ -1,0 +1,1643 @@
+﻿<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.socket.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https: http: wss: ws: https://wuaciyhbdwzesnzinbux.supabase.co http://localhost:5000 http://127.0.0.1:5000 http://localhost:3001 http://127.0.0.1:3001; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <title>ozger - Learning platform to help you study</title>
+    <link rel="icon" href="data:," sizes="any">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/ai-containers.css">
+    <style>
+        @font-face {
+            font-family: 'FredokaOne';
+            src: url('fonts/FredokaOne-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'ContraPhobotech';
+            src: url('fonts/ContraPhobotech-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Monocraft';
+            src: url('fonts/Monocraft.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'PixeloidSans';
+            src: url('fonts/PixeloidSans.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+				        @font-face {
+            font-family: 'PixeloidSans-Bold';
+            src: url('fonts/PixeloidSans-Bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0/dist/umd/supabase.min.js" integrity="sha384-sswy/fskVqlKgAPomlHiO13oYoOHIdx4y/lsMDp/rQ3loCXIcRpV4U4rp2TVCqKj" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+		<script>
+            (function () {
+                if (window.BACKEND_URL) return;
+                const port = window.location.port;
+                const host = window.location.hostname;
+                const proto = window.location.protocol;
+
+                if (port === '8080' || port === '5500') {
+                    window.BACKEND_URL = `${proto}//${host}:3001`;
+                }
+            })();
+        </script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)'], ['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+	</head>
+<body data-theme="basic">
+    
+    <div class="background-container" id="backgroundContainer">
+        <div class="bg-basic">
+            <div class="grid-overlay"></div>
+            <div class="shooting-stars-basic">
+                <span class="star"></span><span class="star"></span><span class="star"></span>
+                <span class="star"></span><span class="star"></span><span class="star"></span>
+            </div>
+        </div>
+        <div class="bg-dark">
+            <div class="grid-overlay"></div>
+            <div class="grid-lines">
+                <div class="grid-line horizontal"></div>
+                <div class="grid-line horizontal"></div>
+                <div class="grid-line vertical"></div>
+                <div class="grid-line vertical"></div>
+            </div>
+        </div>
+        <div class="bg-pixel">
+            <img src="images/pixelbg.png" alt="Background" class="bg-image">
+            <div class="bg-overlay"></div>
+        </div>
+        <canvas class="bg-flow" id="matrixCanvas"></canvas>
+    </div>
+
+    <div class="blur-overlay" id="blurOverlay"></div>
+
+    
+    <header class="global-header">
+        <div class="header-left">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            <a href="#" class="logo-link" onclick="showLanding(); return false;">
+                <span class="logo-text notranslate" translate="no">ozger</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-ghost" id="loginBtn" data-i18n="login">Кіру</button>
+                <button class="btn btn-primary" id="registerBtn" data-i18n="register">Тіркелу</button>
+            </div>
+            <button class="user-icon-btn hidden" id="userIconBtn" aria-label="User menu">
+                <div class="user-icon" id="userIcon">
+                    <span class="user-icon-text" id="userIconText">?</span>
+                    <img class="user-avatar hidden" id="userAvatar" src="" alt="Avatar">
+                </div>
+            </button>
+        </div>
+    </header>
+
+    
+    <aside class="side-panel side-panel-left" id="sidePanelLeft">
+        <div class="side-panel-header">
+            <span class="panel-title" data-i18n="menu">Мәзір</span>
+            <button class="close-panel-btn" id="closePanelLeft" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+        </div>
+        <div class="side-panel-content">
+            <div class="menu-section">
+                <div class="menu-item" id="changeStyleBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5 0 .12.05.23.13.33.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22zm0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4 0-3.86-3.59-7-8-7zm-5.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm3-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm3 4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="changeStyle">Стиль ауыстыру</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="changeLangBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="changeLanguage">Тіл ауыстыру</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="faqBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+                    </div>
+                    <span class="menu-text">FAQ</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="guideBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="siteGuide">Сайт нұсқаулығы</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="contactAuthorBtn" onclick="window.open('https://t.me/ozgercontantsbot', '_blank')">
+                    <div class="menu-icon menu-icon-svg">
+                         <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="contact">Байланыс</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    
+    <aside class="side-panel side-panel-right" id="sidePanelRight">
+        <div class="side-panel-header side-panel-header-right">
+            <button class="close-panel-btn close-panel-btn-right" id="closePanelRight" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+            </button>
+        </div>
+        <div class="side-panel-content side-panel-content-right">
+            <div class="user-profile-section">
+                <div class="user-profile-icon" id="profileIconLarge">
+                    <span class="profile-placeholder" id="profilePlaceholder">?</span>
+                    <img class="profile-avatar hidden" id="profileAvatar" src="" alt="Profile">
+                </div>
+                <span class="profile-username" id="sidebarUsername">Қонақ</span>
+                <span class="profile-school" id="sidebarSchool"></span>
+            </div>
+            <div class="menu-section">
+                <div class="menu-item" id="profileBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="profile">Профиль</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="myMaterialsBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="myMaterials">Менің материалдарым</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="favoritesMenuBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="favorites">Таңдаулылар</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item" id="classmatesBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="classmates">Сыныптастар</span>
+                    <div class="menu-arrow">›</div>
+                </div>
+                <div class="menu-item menu-item-danger" id="logoutMenuBtn">
+                    <div class="menu-icon menu-icon-svg">
+                        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    </div>
+                    <span class="menu-text" data-i18n="logout">Шығу</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==================== LANDING PAGE ==================== -->
+    <main class="main-content" id="landingPage">
+        <div class="center-content">
+            <div class="title-wrapper" id="titleWrapper">
+                <h1 class="main-title notranslate" id="mainTitle" translate="no">ozger</h1>
+                <span class="title-cursor" id="titleCursor"></span>
+            </div>
+            <p class="subtitle" data-i18n="landingSubtitle">ЕНТ-ға дайындық платформасы</p>
+            <button class="btn btn-primary btn-start" id="startBtn" data-i18n="startLearning">
+                <span class="btn-icon">🚀</span>
+                <span>Бастау</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- ==================== HOME PAGE ==================== -->
+    <main class="page-content hidden" id="homePage">
+        <div class="home-container">
+            
+            <section class="home-section quick-actions-section">
+                <div class="quick-action-buttons">
+                    <button class="quick-action-btn quick-action-learn" onclick="showLearnMode()">
+                        <span class="beta-badge">Beta</span>
+                        <span class="quick-action-icon">📖</span>
+                        <span data-i18n="learn">Үйрену</span>
+                    </button>
+                    <button class="quick-action-btn quick-action-practice" onclick="showPracticeMode()">
+                        <span class="quick-action-icon">✏️</span>
+                        <span data-i18n="practice">Жаттығу</span>
+                    </button>
+                    <button class="quick-action-btn quick-action-realtest" onclick="showRealTestMode()">
+                        <span class="quick-action-icon">🎯</span>
+                        <span data-i18n="realTest">Real Test</span>
+                    </button>
+                </div>
+            </section>
+
+            
+            <section class="home-section">
+                <h2 class="section-title" data-i18n="mainActions">Негізгі әрекеттер</h2>
+                <div class="action-grid">
+                    <div class="action-card" onclick="showLibrary()">
+                        <div class="action-icon action-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM10 9h8v2h-8zm0 3h4v2h-4zm0-6h8v2h-8z"/></svg>
+                        </div>
+                        <h3 data-i18n="library">Кітапхана</h3>
+                        <p data-i18n="libraryDesc">Материалдар мен тесттер</p>
+                    </div>
+                    <div class="action-card" onclick="showUploadModal()">
+                        <div class="action-icon action-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                        </div>
+                        <h3 data-i18n="upload">Жүктеу</h3>
+                        <p data-i18n="uploadDesc">Материал немесе тест жүктеу</p>
+                    </div>
+                    <div class="action-card" onclick="showFavorites()">
+                        <div class="action-icon action-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </div>
+                        <h3 data-i18n="favorites">Таңдаулылар</h3>
+                        <p data-i18n="favoritesDesc">Сақталған материалдар</p>
+                    </div>
+                    <div class="action-card" onclick="showGuessGame()">
+                        <div class="action-icon action-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                        </div>
+                        <h3 data-i18n="guessGame">Угадай</h3>
+                        <p data-i18n="guessGameDesc">Тарихи тұлғаларды тап</p>
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="home-section ent-section ent-disabled">
+                <div class="ent-development-banner">
+                    <span data-i18n="inDevelopment">Я хз будет ли</span>
+                </div>
+                <h2 class="section-title">🎯 ЕНТ</h2>
+                <div class="ent-grid">
+                    <div class="ent-card">
+                        <div class="ent-icon ent-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        </div>
+                        <span data-i18n="historyKZ">Қазақстан тарихы</span>
+                    </div>
+                    <div class="ent-card">
+                        <div class="ent-icon ent-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+                        </div>
+                        <span data-i18n="readingLit">Оқу сауаттылығы</span>
+                    </div>
+                    <div class="ent-card">
+                        <div class="ent-icon ent-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4H8v-2h4V7h2v4h4v2h-4v4z"/></svg>
+                        </div>
+                        <span data-i18n="mathLit">Мат. сауаттылық</span>
+                    </div>
+                    <div class="ent-card ent-card-full">
+                        <div class="ent-icon ent-icon-svg">
+                            <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        </div>
+                        <span data-i18n="mockENT">Пробный ЕНТ</span>
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="home-section classroom-section" id="classroomSection" style="display: none;">
+                <h2 class="section-title">📚 Сынып</h2>
+                <div class="classroom-info" id="classroomInfo">
+                    <div class="classroom-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="onlineClassmatesCount">0</div>
+                            <div class="stat-label">Онлайн сыныптастар</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalClassmatesCount">25</div>
+                            <div class="stat-label">Барлық оқушылар</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showClassmates()">
+                        <span>👥</span>
+                        <span>Сыныптастарды көру</span>
+                    </button>
+                </div>
+                <div class="recent-activity" id="recentActivity">
+                    <h3>Жуырдағы белсенділік</h3>
+                    <div class="activity-list" id="activityList">
+                        
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ==================== LIBRARY PAGE ==================== -->
+    <main class="page-content hidden" id="libraryPage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" data-i18n="library">Кітапхана</h1>
+            </div>
+            
+            
+            <div class="library-filters">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all" onclick="setLibraryFilter('owner', 'all')">
+                        <span data-i18n="all">Барлығы</span>
+                    </button>
+                    <button class="filter-tab" data-filter="my" onclick="setLibraryFilter('owner', 'my')">
+                        <span data-i18n="myUploads">Менікі</span>
+                    </button>
+                </div>
+                <div class="filter-tabs" style="display: none;">
+                    <button class="filter-tab active" data-filter="all" onclick="setLibraryFilter('visibility', 'all')">
+                        <span data-i18n="all">Барлығы</span>
+                    </button>
+                    <button class="filter-tab" data-filter="public" onclick="setLibraryFilter('visibility', 'public')">
+                        <span data-i18n="publicTests">Жалпыға</span>
+                    </button>
+                    <button class="filter-tab" data-filter="private" onclick="setLibraryFilter('visibility', 'private')">
+                        <span data-i18n="privateTests">Жеке</span>
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="subject-filter">
+                <select id="subjectFilter" class="form-input form-select" onchange="filterBySubject()">
+                    <option value="all" data-i18n="allSubjects">Барлық пәндер</option>
+                    <option value="history_kz">Қазақстан тарихы</option>
+                    <option value="math_lit">Математикалық сауаттылық</option>
+                    <option value="reading">Оқу сауаттылығы</option>
+                    <option value="math">Математика</option>
+                    <option value="physics">Физика</option>
+                    <option value="chemistry">Химия</option>
+                    <option value="biology">Биология</option>
+                    <option value="geography">География</option>
+                    <option value="world_history">Дүниежүзі тарихы</option>
+                    <option value="english">Ағылшын тілі</option>
+                    <option value="informatics">Информатика</option>
+                    <option value="other">Басқа</option>
+                </select>
+            </div>
+            
+            <div class="library-actions">
+                <div class="search-box">
+                    <input type="text" id="librarySearch" class="search-input" placeholder="Іздеу..." data-i18n-placeholder="search">
+                    <button class="search-btn" onclick="searchLibrary()">🔍</button>
+                </div>
+                <button class="btn btn-primary btn-upload" onclick="showUploadModal()">
+                    <span>➕</span>
+                    <span data-i18n="upload">Жүктеу</span>
+                </button>
+            </div>
+            
+            <div class="library-grid" id="libraryGrid"></div>
+            
+            <div class="empty-state hidden" id="emptyLibrary">
+                <div class="empty-icon">📭</div>
+                <p data-i18n="noMaterials">Материалдар табылмады</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== FAVORITES PAGE ==================== -->
+    <main class="page-content hidden" id="favoritesPage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" data-i18n="favorites">Таңдаулылар</h1>
+            </div>
+            
+            
+            <div class="subject-filter">
+                <select id="favoritesSubjectFilter" class="form-input form-select" onchange="filterFavoritesBySubject()">
+                    <option value="all" data-i18n="allSubjects">Барлық пәндер</option>
+                    <option value="history_kz">Қазақстан тарихы</option>
+                    <option value="math">Математика</option>
+                    <option value="informatics">Информатика</option>
+                    <option value="physics">Физика</option>
+                    <option value="chemistry">Химия</option>
+                    <option value="biology">Биология</option>
+                    <option value="geography">География</option>
+                    <option value="other">Басқа</option>
+                </select>
+            </div>
+            
+            <div class="favorites-grid" id="favoritesGrid"></div>
+            
+            <div class="empty-state hidden" id="emptyFavorites">
+                <div class="empty-icon">⭐</div>
+                <p data-i18n="noFavorites">Әзірге таңдаулылар жоқ</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== TEST EDITOR PAGE ==================== -->
+    <main class="page-content hidden" id="testEditorPage">
+        <div class="container test-editor-container">
+            
+            <div class="test-editor-step" id="testEditorStep1">
+                <div class="page-header">
+                    <button class="back-btn" onclick="confirmExitEditor()">←</button>
+                    <h1 class="page-title" data-i18n="createTest">Тест құру</h1>
+                </div>
+                
+                <div class="test-editor-card">
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="testName">Тест атауы</label>
+                        <input type="text" id="editorTestName" class="form-input form-input-large" 
+                               placeholder="Мысалы: Қазақстан тарихы тесті" data-i18n-placeholder="testNamePlaceholder">
+                    </div>
+                    
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="subject">Пән</label>
+                        <select id="editorTestSubject" class="form-input form-select">
+                            <option value="history_kz" data-i18n="historyKZ">Қазақстан тарихы</option>
+                            <option value="math" data-i18n="math">Математика</option>
+                            <option value="informatics" data-i18n="informatics">Информатика</option>
+                            <option value="physics" data-i18n="physics">Физика</option>
+                            <option value="chemistry" data-i18n="chemistry">Химия</option>
+                            <option value="biology" data-i18n="biology">Биология</option>
+                            <option value="geography" data-i18n="geography">География</option>
+                            <option value="world_history" data-i18n="worldHistory">Дүниежүзі тарихы</option>
+                            <option value="english" data-i18n="english">Ағылшын тілі</option>
+                            <option value="other" data-i18n="other">Басқа</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="visibility">Көріну</label>
+                        <div class="visibility-toggle">
+                            <button type="button" class="visibility-btn active" data-value="public" onclick="setTestVisibility('public')">
+                                <span class="visibility-icon">🌍</span>
+                                <span data-i18n="publicTest">Жалпыға</span>
+                            </button>
+                            <button type="button" class="visibility-btn" data-value="private" onclick="setTestVisibility('private')">
+                                <span class="visibility-icon">🔒</span>
+                                <span data-i18n="privateTest">Жеке</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="questionOrder">Сұрақтардың тәртібі</label>
+                        <div class="visibility-toggle">
+                            <button type="button" class="visibility-btn active" data-order="static" onclick="setQuestionOrder('static')">
+                                <span class="visibility-icon">📋</span>
+                                <span data-i18n="staticOrder">Тұрақты</span>
+                            </button>
+                            <button type="button" class="visibility-btn" data-order="random" onclick="setQuestionOrder('random')">
+                                <span class="visibility-icon">🎲</span>
+                                <span data-i18n="randomOrder">Кездейсоқ</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="answerReveal">Показывать ответы</label>
+                        <div class="visibility-toggle">
+                            <button type="button" class="visibility-btn active" data-answer-mode="immediate" onclick="setAnswerRevealMode('immediate')">
+                                <span class="visibility-icon">⚡</span>
+                                <span data-i18n="answersImmediately">Сразу</span>
+                            </button>
+                            <button type="button" class="visibility-btn" data-answer-mode="end" onclick="setAnswerRevealMode('end')">
+                                <span class="visibility-icon">🏁</span>
+                                <span data-i18n="answersAtEnd">В конце</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-spaced">
+                        <label class="form-label" data-i18n="enableHints">Добавить подсказки</label>
+                        <div class="visibility-toggle">
+                            <button type="button" class="visibility-btn active" data-hints="yes" onclick="setHintsEnabled(true)">
+                                <span class="visibility-icon">💡</span>
+                                <span data-i18n="yes">Да</span>
+                            </button>
+                            <button type="button" class="visibility-btn" data-hints="no" onclick="setHintsEnabled(false)">
+                                <span class="visibility-icon">🚫</span>
+                                <span data-i18n="no">Нет</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-next" onclick="goToEditorStep(2)">
+                        <span data-i18n="next">Келесі</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+            
+            
+            <div class="test-editor-step hidden" id="testEditorStep2">
+                <div class="page-header">
+                    <button class="back-btn" onclick="goToEditorStep(1)">←</button>
+                    <h1 class="page-title" data-i18n="editQuestions">Сұрақтарды өңдеу</h1>
+                    
+                    <button class="delete-question-btn" id="deleteQuestionBtn" onclick="deleteCurrentQuestion()" title="Сұрақты өшіру">
+                        🗑️
+                    </button>
+                </div>
+                
+                
+                <div class="question-editor-area" id="questionEditorArea">
+                    <div class="question-content">
+                        <p class="editor-stage-hint" data-i18n="editorStep2Hint">
+                            Нажмите на блоки ниже, чтобы редактировать вопрос и варианты. ✓ отмечает правильный ответ.
+                        </p>
+                        
+                        <div class="editor-section-label" data-i18n="questionBlock">Текст вопроса</div>
+                        <button class="question-text-btn" id="questionTextBtn" onclick="editQuestionText()">
+                            <span class="question-placeholder" data-i18n="clickToAddQuestion">Сұрақты жазу үшін басыңыз...</span>
+                        </button>
+
+                        <div class="editor-section-label" data-i18n="imageBlock">Изображение (необязательно)</div>
+                        <button class="question-image-area" id="questionImageArea" onclick="addQuestionImage()">
+                            <div class="image-placeholder">
+                                <span class="image-icon">🖼️</span>
+                                <span data-i18n="addImage">Сурет қосу (міндетті емес)</span>
+                            </div>
+                        </button>
+                        <input type="file" id="questionImageInput" accept="image/*" hidden onchange="handleQuestionImageUpload(event)">
+                        
+                        
+                        
+                        
+                        <div class="editor-section-label" data-i18n="answersBlock">Варианты ответа</div>
+                        <div class="answer-options" id="answerOptions">
+                            <button class="answer-option-btn" data-index="0" onclick="editAnswerOption(0)">
+                                <span class="option-letter">A</span>
+                                <span class="option-text" data-i18n="clickToAddAnswer">Жауапты жазу...</span>
+                                <span class="correct-indicator hidden">✓</span>
+                            </button>
+                            <button class="answer-option-btn" data-index="1" onclick="editAnswerOption(1)">
+                                <span class="option-letter">B</span>
+                                <span class="option-text" data-i18n="clickToAddAnswer">Жауапты жазу...</span>
+                                <span class="correct-indicator hidden">✓</span>
+                            </button>
+                        </div>
+                        
+                        <button class="btn btn-ghost btn-add-option" id="addOptionBtn" onclick="addAnswerOption()">
+                            <span>➕</span>
+                            <span data-i18n="addOption">Нұсқа қосу</span>
+                        </button>
+                    </div>
+                </div>
+                
+                
+                <div class="editor-section-label" data-i18n="questionsNav">Навигация по вопросам</div>
+                <div class="question-navigation">
+                    <div class="question-nav-scroll" id="questionNavScroll">
+                        <button class="question-nav-btn active" data-index="0" onclick="switchToQuestion(0)">1</button>
+                    </div>
+                    <button class="question-nav-add" onclick="addNewQuestion()">➕</button>
+                </div>
+                
+                
+                <div class="editor-actions">
+                    <button type="button" class="btn btn-primary btn-save-test" id="saveTestFromEditorBtn" onclick="saveTestFromEditor()">
+                        <span>💾</span>
+                        <span data-i18n="saveTest">Тестті сақтау</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="edit-overlay hidden" id="editOverlay" onclick="closeEditOverlay()">
+            <div class="edit-input-container" onclick="event.stopPropagation()">
+                <textarea id="editTextarea" class="edit-textarea" placeholder="Мәтінді енгізіңіз..."></textarea>
+                <div class="edit-actions">
+                    <button class="btn btn-danger btn-delete-option hidden" id="deleteOptionBtn" onclick="deleteCurrentOption()" title="Жою">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-success btn-mark-correct hidden" id="markCorrectBtn" onclick="markAsCorrectAnswer()">
+                        <span>✓</span>
+                        <span data-i18n="markCorrect">Дұрыс жауап</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="closeEditOverlay()" data-i18n="cancel">Болдырмау</button>
+                    <button class="btn btn-primary" onclick="saveEditedText()" data-i18n="save">Сақтау</button>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="modal-overlay hidden" id="exitEditorModal">
+            <div class="modal modal-small">
+                <h2 class="modal-title" data-i18n="exitConfirmTitle">Шығуды растау</h2>
+                <p class="modal-text" data-i18n="exitEditorWarning">Тест сақталмауы мүмкін. Шығуды қалайсыз ба?</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" onclick="closeModal('exitEditorModal')" data-i18n="stay">Қалу</button>
+                    <button class="btn btn-ghost" onclick="forceExitEditor()" data-i18n="exit">Шығу</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== TEST TAKING PAGE ==================== -->
+    <main class="page-content hidden test-taking-page" id="testTakingPage">
+        <div class="ai-container">
+            <header class="ai-page-header">
+                <button class="back-btn" onclick="confirmExitTest()">←</button>
+                <h1 class="ai-page-title" id="testTakingTitle" data-i18n="test">Тест</h1>
+            </header>
+
+            
+            <div class="ai-question-nav" id="testNavBar"></div>
+
+            <div class="ai-test-content">
+                <div class="ai-question-card">
+                    <p class="ai-question-number" id="testQuestionNumber">Сұрақ 1/10</p>
+                    <p class="ai-question-text" id="testQuestionText">Сұрақ мәтіні</p>
+                    <div class="test-question-image-wrap hidden" id="testQuestionImageWrap">
+                        <img class="test-question-image" id="testQuestionImage" alt="">
+                    </div>
+
+                    <div class="ai-answers" id="testAnswers"></div>
+                </div>
+            </div>
+
+            <div class="ai-test-footer">
+                <div class="ai-test-navigation">
+                    <button class="btn btn-secondary" id="testPrevBtn" onclick="prevTestQuestion()">
+                        ← <span data-i18n="prev">Алдыңғы</span>
+                    </button>
+                    <button class="btn btn-hint hidden" id="testHintBtn" onclick="useTestHint()">
+                        💡 <span data-i18n="hint">Көмек</span>
+                    </button>
+                    <button class="btn btn-secondary" id="testNextBtn" onclick="nextTestQuestion()">
+                        <span data-i18n="next">Келесі</span> →
+                    </button>
+                </div>
+                <div class="ai-result-section">
+                    <button class="btn btn-result hidden" id="testFinishBtn" onclick="finishTest()">
+                        📊 <span data-i18n="showResults">Нәтиже</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="modal-overlay hidden" id="testResultsModal">
+            <div class="ai-results-card">
+                <h2 class="ai-results-title" data-i18n="resultsTitle">Нәтижелер</h2>
+                <div class="ai-results-score" id="testResultsScore">
+                    <span class="ai-score-number">0/0</span>
+                    <span class="ai-score-percent">0%</span>
+                </div>
+                <div class="test-results-breakdown hidden" id="testResultsBreakdown"></div>
+                <div class="ai-results-actions">
+                    <button class="btn btn-secondary" onclick="closeTestResults()" data-i18n="exit">Шығу</button>
+                    <button class="btn btn-primary" onclick="retakeTest()">
+                        <span>🔄</span>
+                        <span data-i18n="retry">Қайталау</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="modal-overlay hidden" id="exitTestModal">
+            <div class="modal modal-small">
+                <h2 class="modal-title" data-i18n="exitConfirmTitle">Шығуды растау</h2>
+                <p class="modal-text" data-i18n="testExitWarning">Тесттен шығасыз ба? Прогресс сақталмайды.</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" onclick="closeModal('exitTestModal')" data-i18n="stay">Қалу</button>
+                    <button class="btn btn-ghost" onclick="forceExitTest()" data-i18n="exit">Шығу</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== GUESS GAME PAGE ==================== -->
+    <main class="page-content hidden" id="guessGamePage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" data-i18n="guessGame">Угадай</h1>
+            </div>
+            
+            <div class="guess-game-container">
+                
+                <div class="guess-start-screen" id="guessStartScreen">
+                    <div class="guess-intro">
+                        <div class="guess-intro-icon">🎯</div>
+                        <h2 data-i18n="guessIntroTitle">Тарихи тұлғаны тап!</h2>
+                        <p data-i18n="guessIntroDesc">Фактілерді оқып, тарихи тұлғаны табуға тырысыңыз</p>
+                    </div>
+                    <div class="guess-stats">
+                        <div class="guess-stat">
+                            <span class="guess-stat-value" id="guessStreak">0</span>
+                            <span class="guess-stat-label" data-i18n="currentStreak">Серия</span>
+                        </div>
+                        <div class="guess-stat">
+                            <span class="guess-stat-value" id="guessBestStreak">0</span>
+                            <span class="guess-stat-label" data-i18n="bestStreak">Рекорд</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="startGuessGame()" data-i18n="startGame">Ойынды бастау</button>
+                </div>
+                
+                
+                <div class="guess-play-screen hidden" id="guessPlayScreen">
+                    <div class="guess-level-indicator">
+                        <span data-i18n="factLevel">Деңгей:</span>
+                        <span id="guessLevel">1</span>/3
+                    </div>
+                    
+                    <div class="guess-facts-container" id="guessFactsContainer">
+                        
+                    </div>
+                    
+                    <div class="guess-input-area">
+                        <input type="text" class="form-input guess-input" id="guessInput" 
+                               placeholder="" data-i18n-placeholder="enterAnswer" 
+                               onkeypress="if(event.key==='Enter')checkGuess()">
+                        <button class="btn btn-primary" onclick="checkGuess()" data-i18n="check">Тексеру</button>
+                    </div>
+                    
+                    <div class="guess-hints">
+                        <button class="btn btn-ghost btn-small" onclick="skipGuess()" data-i18n="skip">Өткізіп жіберу</button>
+                    </div>
+                </div>
+                
+                
+                <div class="guess-result-screen hidden" id="guessResultScreen">
+                    <div class="guess-result-icon" id="guessResultIcon">✅</div>
+                    <h2 class="guess-result-title" id="guessResultTitle"></h2>
+                    <div class="guess-result-answer" id="guessResultAnswer"></div>
+                    <div class="guess-result-info" id="guessResultInfo"></div>
+                    <div class="guess-result-actions">
+                        <button class="btn btn-primary" onclick="nextGuessRound()" data-i18n="nextQuestion">Келесі сұрақ</button>
+                        <button class="btn btn-ghost" onclick="endGuessGame()" data-i18n="endGame">Аяқтау</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== CLASSMATES PAGE ==================== -->
+    <main class="page-content hidden" id="classmatesPage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" data-i18n="classmates">Сыныптастар</h1>
+            </div>
+            
+            <div class="classmates-info">
+                <div class="class-badge" id="classmatesClassBadge">
+                    <span class="class-school" id="classmatesSchool">Dostyq School</span>
+                    <span class="class-name" id="classmatesClassName">11А</span>
+                </div>
+                <div class="classmates-count">
+                    <span id="classmatesCount">0</span> <span data-i18n="students">оқушы</span>
+                </div>
+            </div>
+            
+            <div class="classmates-list" id="classmatesList">
+                
+            </div>
+            
+            <div class="empty-state hidden" id="emptyClassmates">
+                <div class="empty-icon">👥</div>
+                <p data-i18n="noClassmates">Сыныптастар табылмады</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== INPUT/EDITOR PAGE ==================== -->
+    <main class="page-content hidden" id="inputPage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" id="inputPageTitle" data-i18n="inputTitle">Материалды енгізіңіз</h1>
+            </div>
+            
+            <div class="editor-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="title">Атауы</label>
+                        <input type="text" id="editorTitle" class="form-input" placeholder="Атауы">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="subject">Пән</label>
+                        <select id="editorSubject" class="form-input form-select">
+                            <option value="history_kz">Қазақстан тарихы</option>
+                            <option value="math_lit">Математикалық сауаттылық</option>
+                            <option value="reading">Оқу сауаттылығы</option>
+                            <option value="math">Математика</option>
+                            <option value="physics">Физика</option>
+                            <option value="chemistry">Химия</option>
+                            <option value="biology">Биология</option>
+                            <option value="geography">География</option>
+                            <option value="world_history">Дүниежүзі тарихы</option>
+                            <option value="english">Ағылшын тілі</option>
+                            <option value="informatics">Информатика</option>
+                            <option value="other">Басқа</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="materialEditorGroup">
+                    <label class="form-label" data-i18n="content">Мазмұны</label>
+                    <textarea id="materialInput" class="material-input" placeholder="1. Сұрақ: Жауап
+2. Сұрақ: Жауап"></textarea>
+                    <div class="input-actions">
+                        <button class="mini-btn" onclick="runCorrector()">🛠️ <span data-i18n="correctFormat">Форматты түзету</span></button>
+                        <button class="mini-btn" onclick="loadSampleMaterial()">📄 <span data-i18n="loadSample">Мысал</span></button>
+                        <button class="mini-btn" onclick="clearInput()">🗑️</button>
+                    </div>
+                </div>
+                
+                
+                <div class="form-group hidden" id="testEditorGroup">
+                    <div class="test-questions" id="testQuestions">
+                        
+                    </div>
+                    <button class="btn btn-ghost" onclick="addTestQuestion()">➕ <span data-i18n="addQuestion">Сұрақ қосу</span></button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="editorPublic" checked>
+                        <span data-i18n="makePublic">Жалпыға қолжетімді</span>
+                    </label>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-ghost" onclick="showHome()" data-i18n="cancel">Болдырмау</button>
+                    <button class="btn btn-primary" onclick="saveMaterial()">
+                        <span>💾</span>
+                        <span data-i18n="save">Сақтау</span>
+                    </button>
+                    <button class="btn btn-primary" id="startLearningBtn" onclick="showModuleSelection()">
+                        <span>🚀</span>
+                        <span data-i18n="startLearning">Бастау</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="error-message hidden"></div>
+        </div>
+    </main>
+
+    <!-- ==================== LEARNING PAGE ==================== -->
+    <main class="page-content hidden" id="learningPage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="confirmExitLearning()">←</button>
+                <h1 class="page-title" id="moduleTitle">Оқыту модулі</h1>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar">0%</div>
+                </div>
+            </div>
+
+            <div id="flashcardsModule" class="learning-module">
+                <div class="card-counter" id="cardCounter"></div>
+                <div id="flashcardContainer"></div>
+                <div class="navigation-btns">
+                    <button class="nav-btn" id="prevCardBtn" onclick="previousCard()">← <span data-i18n="prev">Алдыңғы</span></button>
+                    <button class="nav-btn" id="nextCardBtn" onclick="nextCard()"><span data-i18n="next">Келесі</span> →</button>
+                </div>
+            </div>
+
+            <div id="quizModule" class="learning-module">
+                <div id="quizContainer"></div>
+            </div>
+
+            <div id="matchingModule" class="learning-module">
+                <div id="matchingContainer"></div>
+            </div>
+
+            <div id="completionModule" class="learning-module">
+                <div class="completion-screen">
+                    <div class="trophy">🏆</div>
+                    <h2 data-i18n="congratulations">Құттықтаймыз!</h2>
+                    <p data-i18n="completedAll">Сіз барлық модульдерді аяқтадыңыз!</p>
+                    <div class="completion-stats" id="completionStats"></div>
+                </div>
+            </div>
+
+            <div class="module-navigation">
+                <button class="btn btn-ghost" id="prevModuleBtn" onclick="previousModule()">← <span data-i18n="prevModule">Алдыңғы</span></button>
+                <button class="btn btn-ghost" id="nextModuleBtn" onclick="nextModule()"><span data-i18n="nextModule">Келесі</span> →</button>
+            </div>
+            <div class="module-navigation finish-row">
+                <button class="btn btn-result" id="finishBtn" onclick="finishAndShowResults()">📊 <span data-i18n="showResults">Нәтиже</span></button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== PROFILE PAGE ==================== -->
+    <main class="page-content hidden" id="profilePage">
+        <div class="container">
+            <div class="page-header">
+                <button class="back-btn" onclick="showHome()">←</button>
+                <h1 class="page-title" data-i18n="profile">Профиль</h1>
+            </div>
+            
+            <div class="profile-page-content">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-large" id="pageProfileAvatar">
+                        <span class="avatar-placeholder" id="pageAvatarPlaceholder">?</span>
+                        <img class="avatar-img hidden" id="pageAvatarImg" src="" alt="">
+                    </div>
+                    <div class="avatar-buttons">
+                        <button class="btn btn-ghost btn-small" onclick="document.getElementById('pageAvatarInput').click()">
+                            <span data-i18n="changeAvatar">Аватарды ауыстыру</span>
+                        </button>
+                        <button class="btn btn-ghost btn-small delete-avatar-btn hidden" id="deleteAvatarBtn" onclick="deleteAvatar()">
+                            <span data-i18n="deleteAvatar">Аватарды өшіру</span>
+                        </button>
+                    </div>
+                    <input type="file" id="pageAvatarInput" accept="image/*" class="avatar-file-input" onchange="handleAvatarChange(event)">
+                </div>
+                
+                <div class="profile-details">
+                    <div class="profile-field">
+                        <label data-i18n="username">Пайдаланушы аты</label>
+                        <span id="profilePageUsername">-</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Email</label>
+                        <span id="profilePageEmail">-</span>
+                    </div>
+                    <div class="profile-field">
+                        <label data-i18n="country">Ел</label>
+                        <span id="profilePageCountry">-</span>
+                    </div>
+                    <div class="profile-field">
+                        <label data-i18n="city">Қала</label>
+                        <span id="profilePageCity">-</span>
+                    </div>
+                    <div class="profile-field">
+                        <label data-i18n="school">Мектеп</label>
+                        <span id="profilePageSchool">-</span>
+                    </div>
+                    <div class="profile-field editable profile-field-row">
+                        <label data-i18n="class">Сынып</label>
+                        <div class="profile-selects">
+                            <select id="profilePageClassNumber" class="form-input form-select" onchange="updateClassField()">
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                            </select>
+                            <select id="profilePageClassLetter" class="form-input form-select" onchange="updateClassField()">
+                                <option value="А">А</option>
+                                <option value="Ә">Ә</option>
+                                <option value="Б">Б</option>
+                                <option value="В">В</option>
+                                <option value="Г">Г</option>
+                                <option value="Ғ">Ғ</option>
+                                <option value="Д">Д</option>
+                                <option value="Е">Е</option>
+                                <option value="Ж">Ж</option>
+                                <option value="З">З</option>
+                                <option value="И">И</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="profile-field editable">
+                        <label data-i18n="profileCombination">Профильдік комбинация</label>
+                        <select id="profilePageSubjectCombination" class="form-input form-select" onchange="updateProfileCombination()">
+                            <option value="informatics-math" data-i18n="comboInformaticsMath">Информатика - Математика</option>
+                            <option value="geography-math" data-i18n="comboGeographyMath">География - Математика</option>
+                            <option value="physics-math" data-i18n="comboPhysicsMath">Физика - Математика</option>
+                            <option value="biology-chemistry" data-i18n="comboBiologyChemistry">Биология - Химия</option>
+                            <option value="biology-geography" data-i18n="comboBiologyGeography">Биология - География</option>
+                            <option value="history-english" data-i18n="comboHistoryEnglish">Дүниежүзі тарихы - Ағылшын</option>
+                            <option value="history-law" data-i18n="comboHistoryLaw">Дүниежүзі тарихы - Құқық</option>
+                            <option value="creative" data-i18n="comboCreative">Шығармашылық</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <h3 data-i18n="statistics">Статистика</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statTotalTests">0</div>
+                            <div class="stat-label" data-i18n="testsCompleted">Тест өтілді</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statAvgScore">0%</div>
+                            <div class="stat-label" data-i18n="avgScore">Орташа балл</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statBestENT">0</div>
+                            <div class="stat-label" data-i18n="bestENT">Үздік ЕНТ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" onclick="handleLogout()" data-i18n="logout">Шығу</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+    
+    
+    <div class="modal-overlay" id="styleModal">
+        <div class="modal">
+            <button class="modal-close-btn" onclick="closeModal('styleModal')">✕</button>
+            <h2 class="modal-title" data-i18n="selectStyle">Стиль таңдаңыз</h2>
+            <div class="style-grid">
+                <div class="style-card" data-style="basic">
+                    <div class="style-preview style-preview-basic"><div class="preview-grid"></div></div>
+                    <span class="style-name">Basic</span>
+                </div>
+                <div class="style-card" data-style="dark">
+                    <div class="style-preview style-preview-dark"><div class="preview-grid"></div></div>
+                    <span class="style-name">Dark</span>
+                </div>
+                <div class="style-card" data-style="pixel">
+                    <div class="style-preview style-preview-pixel"></div>
+                    <span class="style-name">Pixel</span>
+                </div>
+                <div class="style-card" data-style="flow">
+                    <div class="style-preview style-preview-flow"><div class="preview-matrix"></div></div>
+                    <span class="style-name">Flow</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-apply" id="applyStyleBtn" data-i18n="apply">Қолдану</button>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="langModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('langModal')">✕</button>
+            <h2 class="modal-title" data-i18n="selectLanguage">Тіл таңдаңыз</h2>
+            <div class="lang-grid">
+                <button class="lang-card" data-lang="kk">🇰🇿 Қазақша</button>
+                <button class="lang-card" data-lang="ru">🇷🇺 Русский</button>
+                <button class="lang-card" data-lang="en">🇬🇧 English</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="faqModal">
+        <div class="modal modal-large">
+            <button class="modal-close-btn" onclick="closeModal('faqModal')">✕</button>
+            <h2 class="modal-title">FAQ</h2>
+            <div class="faq-tabs">
+                <button class="faq-tab active" onclick="showFaqSection('faq')" data-i18n="faq">Жиі қойылатын сұрақтар</button>
+                <button class="faq-tab" onclick="showFaqSection('guide')" data-i18n="siteGuide">Сайт нұсқаулығы</button>
+            </div>
+            <div class="faq-content" id="faqContent"></div>
+            <div class="guide-content hidden" id="guideContent"></div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="authModal">
+        <div class="modal auth-modal">
+            <button class="modal-close-btn" onclick="closeModal('authModal')">✕</button>
+            <h2 class="modal-title" id="authModalTitle" data-i18n="register">Тіркелу</h2>
+            
+            
+            <div class="auth-steps" id="authSteps">
+                <div class="step active" data-step="1">1</div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">2</div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">3</div>
+            </div>
+            
+            <div id="authFormContainer"></div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="testEditorModal">
+        <div class="modal modal-large">
+            <button class="modal-close-btn" onclick="closeModal('testEditorModal')">✕</button>
+            <h2 class="modal-title" data-i18n="createTest">Тест құру</h2>
+            
+            <div class="test-editor-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="testName">Тест атауы</label>
+                        <input type="text" id="testEditorName" class="form-input" placeholder="Мысалы: Қазақстан тарихы тесті">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="subject">Пән</label>
+                        <select id="testEditorSubject" class="form-input form-select">
+                            <option value="history_kz" data-i18n="historyKZ">Қазақстан тарихы</option>
+                            <option value="math" data-i18n="math">Математика</option>
+                            <option value="informatics" data-i18n="informatics">Информатика</option>
+                            <option value="physics" data-i18n="physics">Физика</option>
+                            <option value="chemistry" data-i18n="chemistry">Химия</option>
+                            <option value="biology" data-i18n="biology">Биология</option>
+                            <option value="geography" data-i18n="geography">География</option>
+                            <option value="world_history" data-i18n="worldHistory">Дүниежүзі тарихы</option>
+                            <option value="english" data-i18n="english">Ағылшын тілі</option>
+                            <option value="kazakh_lit" data-i18n="kazakhLit">Қазақ тілі мен әдебиеті</option>
+                            <option value="russian_lit" data-i18n="russianLit">Орыс тілі мен әдебиеті</option>
+                            <option value="other" data-i18n="other">Басқа</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" data-i18n="visibility">Көріну</label>
+                    <div class="visibility-options">
+                        <label class="visibility-option">
+                            <input type="radio" name="testVisibility" value="public" checked>
+                            <span class="visibility-icon">🌍</span>
+                            <span data-i18n="publicTest">Жалпыға қолжетімді</span>
+                        </label>
+                        <label class="visibility-option">
+                            <input type="radio" name="testVisibility" value="private">
+                            <span class="visibility-icon">🔒</span>
+                            <span data-i18n="privateTest">Жеке (тек маған)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="test-questions-editor" id="testQuestionsEditor">
+                    <h3 data-i18n="questions">Сұрақтар</h3>
+                    <div id="testQuestionsList">
+                        
+                    </div>
+                    <button class="btn btn-ghost btn-add-question" onclick="addNewTestQuestion()">
+                        <span>➕</span>
+                        <span data-i18n="addQuestion">Сұрақ қосу</span>
+                    </button>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button class="btn btn-ghost" onclick="closeModal('testEditorModal')" data-i18n="cancel">Болдырмау</button>
+                    <button class="btn btn-primary" onclick="saveNewTest()">
+                        <span>💾</span>
+                        <span data-i18n="saveTest">Тестті сақтау</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="subjectModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('subjectModal')">✕</button>
+            <h2 class="modal-title" id="subjectModalTitle">Пән</h2>
+            <div class="subject-actions">
+                <div class="subject-action-card" onclick="subjectAction('daily')">
+                    <div class="action-icon">🎲</div>
+                    <span data-i18n="dailyTest">Күнделікті тест</span>
+                    <p data-i18n="dailyTestDesc">Кездейсоқ сұрақтар</p>
+                </div>
+                <div class="subject-action-card" onclick="subjectAction('topics')">
+                    <div class="action-icon">📚</div>
+                    <span data-i18n="topics">Тақырыптар</span>
+                    <p data-i18n="topicsDesc">Тақырып бойынша оқу</p>
+                </div>
+                <div class="subject-action-card" onclick="subjectAction('realtest')">
+                    <div class="action-icon">🎯</div>
+                    <span data-i18n="realTest">Real Test</span>
+                    <p data-i18n="realTestDesc">ЕНТ форматында тест</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="materialActionModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('materialActionModal')">✕</button>
+            <h2 class="modal-title" id="materialActionTitle">Материал</h2>
+            <div class="material-actions-grid">
+                <div class="material-action-card" onclick="materialAction('learn')">
+                    <div class="action-icon">📖</div>
+                    <span data-i18n="learn">Үйрену</span>
+                </div>
+                <div class="material-action-card" onclick="materialAction('practice')">
+                    <div class="action-icon">✏️</div>
+                    <span data-i18n="practice">Жаттығу</span>
+                </div>
+                <div class="material-action-card" onclick="materialAction('realtest')">
+                    <div class="action-icon">🎯</div>
+                    <span data-i18n="realTest">Real Test</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="moduleModal">
+        <div class="modal">
+            <button class="modal-close-btn" onclick="closeModal('moduleModal')">✕</button>
+            <h2 class="modal-title" data-i18n="selectModules">Модульдерді таңдаңыз</h2>
+            <div class="module-options">
+                <label class="module-option">
+                    <input type="checkbox" id="chkFlashcards" checked>
+                    <span class="option-icon">📇</span>
+                    <span class="option-text" data-i18n="flashcards">Флэш-карталар</span>
+                </label>
+                <label class="module-option">
+                    <input type="checkbox" id="chkQuiz" checked>
+                    <span class="option-icon">✅</span>
+                    <span class="option-text" data-i18n="quiz">Тест</span>
+                </label>
+                <label class="module-option">
+                    <input type="checkbox" id="chkMatching" checked>
+                    <span class="option-icon">🔗</span>
+                    <span class="option-text" data-i18n="matching">Сәйкестендіру</span>
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-ghost" onclick="closeModal('moduleModal')" data-i18n="cancel">Болдырмау</button>
+                <button class="btn btn-primary" onclick="startLearning()" data-i18n="start">Бастау</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="quicklookModal">
+        <div class="modal quicklook-modal">
+            <button class="modal-close-btn" onclick="closeModal('quicklookModal')">✕</button>
+            <div class="quicklook-header">
+                <div class="quicklook-icon" id="quicklookIcon">📚</div>
+                <div class="quicklook-info">
+                    <h2 class="quicklook-title" id="quicklookTitle">Материал</h2>
+                    <div class="quicklook-meta">
+                        <span class="meta-item">👤 <span id="quicklookAuthor">Автор</span></span>
+                        <span class="meta-item">📝 <span id="quicklookCount">0</span></span>
+                        <span class="category-badge" id="quicklookCategory">Санат</span>
+                    </div>
+                </div>
+            </div>
+            <div class="quicklook-preview">
+                <h3 data-i18n="preview">Алдын ала қарау</h3>
+                <div class="preview-list" id="quicklookPreview"></div>
+            </div>
+            <div class="quicklook-actions">
+                <button class="btn btn-ghost" id="quicklookFavoriteBtn" onclick="toggleQuicklookFavorite()">
+                    <span id="quicklookFavIcon">☆</span>
+                </button>
+                <button class="btn btn-primary" onclick="openMaterialActionFromQuicklook()">
+                    <span>🚀</span>
+                    <span data-i18n="start">Бастау</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="confirmDeleteModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('confirmDeleteModal')">✕</button>
+            <h2 class="modal-title" data-i18n="confirmDelete">Өшіруді растау</h2>
+            <p class="modal-text" data-i18n="deleteConfirmText">Бұл материалды өшіргіңіз келе ме?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-ghost" onclick="closeModal('confirmDeleteModal')" data-i18n="cancel">Болдырмау</button>
+                <button class="btn btn-danger" onclick="confirmDeleteMaterial()" data-i18n="delete">Өшіру</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="testDetailsModal">
+        <div class="modal modal-medium test-details-modal">
+            <button class="modal-close-btn" onclick="closeModal('testDetailsModal')">✕</button>
+            
+            <div class="test-details-header">
+                <div class="test-details-category" id="testDetailCategory"></div>
+                <h2 class="test-details-title" id="testDetailTitle"></h2>
+            </div>
+            
+            
+            <div class="test-details-author-card" id="testDetailAuthorCard">
+                <div class="test-author-avatar" id="testDetailAvatar">👤</div>
+                <div class="test-author-info">
+                    <span class="test-author-name" id="testDetailAuthor"></span>
+                    <span class="test-author-date" id="testDetailDate"></span>
+                </div>
+            </div>
+            
+            <div class="test-details-stats">
+                <div class="test-stat">
+                    <span class="test-stat-value" id="testDetailQuestions">0</span>
+                    <span class="test-stat-label" data-i18n="questions">сұрақ</span>
+                </div>
+            </div>
+            
+            <div class="test-details-actions">
+                <button class="btn btn-primary btn-large" id="testDetailStartBtn" onclick="startTestFromModal()" data-i18n="startTest">Тестті бастау</button>
+                <div class="test-detail-secondary-actions">
+                    <button class="btn btn-icon" id="testDetailFavoriteBtn" onclick="toggleTestDetailFavorite()">
+                        <svg viewBox="0 0 24 24" id="testDetailFavIcon"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== AI TEACHER MODALS ==================== -->
+    
+    
+    <div class="modal-overlay" id="aiTeacherMaterialModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('aiTeacherMaterialModal')">✕</button>
+            <h2 class="modal-title" data-i18n="selectMaterial">Материалды таңдаңыз</h2>
+            <div class="info-box" id="aiUsageRemaining"></div>
+            <div class="ai-material-options">
+                <div class="ai-material-option" onclick="selectAIMaterialType('text')">
+                    <span class="ai-option-icon">📝</span>
+                    <span class="ai-option-name" data-i18n="text">Мәтін</span>
+                </div>
+                <div class="ai-material-option" onclick="selectAIMaterialType('pdf')">
+                    <span class="ai-option-icon">📄</span>
+                    <span class="ai-option-name">PDF</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="aiTeacherTextModal">
+        <div class="modal modal-large">
+            <button class="modal-close-btn" onclick="closeModal('aiTeacherTextModal')">✕</button>
+            <h2 class="modal-title" data-i18n="enterMaterial">Материалды енгізіңіз</h2>
+            <textarea id="aiMaterialText" class="ai-material-textarea" 
+                placeholder="Оқу материалын осында жазыңыз немесе қойыңыз..."></textarea>
+            
+            <label class="ai-history-mode-toggle" id="aiHistoryModeToggle">
+                <input type="checkbox" id="aiHistoryModeText">
+                <span class="ai-toggle-slider"></span>
+                <span class="ai-toggle-label">📜 History Mode (Тарих режимі)</span>
+            </label>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-ghost" onclick="closeModal('aiTeacherTextModal')" data-i18n="cancel">Болдырмау</button>
+                <button class="btn btn-primary" onclick="submitAIMaterial()" data-i18n="continue">Жалғастыру</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="aiTeacherPdfModal">
+        <div class="modal">
+            <button class="modal-close-btn" onclick="closeModal('aiTeacherPdfModal')">✕</button>
+            <h2 class="modal-title" data-i18n="uploadPdf">PDF файлын жүктеңіз</h2>
+            
+            <div class="ai-file-upload-area" id="aiDropZone">
+                <input type="file" id="aiPdfInput" accept=".pdf" hidden onchange="handleAIFileSelect(event)">
+                <span class="ai-upload-icon">📁</span>
+                <p class="ai-upload-text" data-i18n="dragPdf">PDF файлын сүйреңіз немесе</p>
+                <button class="btn btn-secondary" onclick="document.getElementById('aiPdfInput').click()" data-i18n="selectFile">
+                    Файлды таңдау
+                </button>
+                <p id="aiSelectedFile" class="ai-selected-file"></p>
+            </div>
+            
+            <label class="ai-history-mode-toggle" id="aiHistoryModeTogglePdf" style="display: none;">
+                <input type="checkbox" id="aiHistoryModePdf">
+                <span class="ai-toggle-slider"></span>
+                <span class="ai-toggle-label">📜 History Mode (Тарих режимі)</span>
+            </label>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-ghost" onclick="closeModal('aiTeacherPdfModal')" data-i18n="cancel">Болдырмау</button>
+                <button class="btn btn-primary" id="aiSubmitPdfBtn" onclick="submitAIPdf()" disabled data-i18n="continue">Жалғастыру</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="aiQuestionCountModal">
+        <div class="modal modal-small">
+            <button class="modal-close-btn" onclick="closeModal('aiQuestionCountModal')">✕</button>
+            <h2 class="modal-title" data-i18n="selectQuestionCount">Сұрақ санын таңдаңыз</h2>
+            <div class="ai-count-options">
+                <button class="ai-count-btn" onclick="selectAIQuestionCount(10)">10</button>
+                <button class="ai-count-btn" onclick="selectAIQuestionCount(15)">15</button>
+                <button class="ai-count-btn" onclick="selectAIQuestionCount(20)">20</button>
+                <button class="ai-count-btn" onclick="selectAIQuestionCount(25)">25</button>
+                <button class="ai-count-btn" onclick="selectAIQuestionCount(30)">30</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="ai-loading-screen" id="aiLoadingScreen">
+        <div class="ai-loading-content">
+            <div class="ai-loader"></div>
+            <p class="ai-loading-text" data-i18n="aiGenerating">AI генерациялауда...</p>
+            <p class="ai-loading-subtext" data-i18n="pleaseWait">Бұл біраз уақыт алуы мүмкін</p>
+        </div>
+    </div>
+
+    <!-- ==================== AI TEACHER PAGES ==================== -->
+    
+    
+    <main class="page-content hidden" id="aiLearnPage">
+        <div class="ai-container">
+            <header class="ai-page-header">
+                <button class="back-btn" onclick="confirmExitAITeacher()">←</button>
+                <h1 class="ai-page-title" data-i18n="learnMode">Оқу режимі</h1>
+            </header>
+            
+            <div id="aiLearnPlanNav" class="ai-learn-plan-nav"></div>
+            
+            <div class="ai-learn-progress">
+                <div class="ai-progress-bar">
+                    <div class="ai-progress-fill" id="aiLearnProgressFill"></div>
+                </div>
+                <span class="ai-progress-text" id="aiLearnProgressText">0/0</span>
+            </div>
+            
+            <div id="aiLearnViewTabs" class="ai-learn-view-tabs"></div>
+            
+            <div id="aiLearnContent" class="ai-learn-content"></div>
+            
+            <div id="aiLearnQuestions" class="ai-learn-questions"></div>
+            
+            <div class="ai-learn-navigation">
+                <button class="btn btn-secondary" id="aiLearnPrevBtn" onclick="prevAILearnSection()" disabled>
+                    ← <span data-i18n="prev">Алдыңғы</span>
+                </button>
+                <button class="btn btn-primary" id="aiLearnNextBtn" onclick="nextAILearnSection()">
+                    <span data-i18n="next">Келесі</span> →
+                </button>
+            </div>
+        </div>
+    </main>
+
+    
+    <main class="page-content hidden" id="aiLearnCompletePage">
+        <div class="ai-container ai-center-content">
+            <div class="ai-complete-card">
+                <span class="ai-complete-icon">🎉</span>
+                <h1 class="ai-complete-title" data-i18n="congratulations">Құттықтаймыз!</h1>
+                <p class="ai-complete-text" data-i18n="completedMaterial">Сіз барлық материалды аяқтадыңыз!</p>
+                
+                <div class="ai-complete-actions">
+                    <button class="btn btn-primary" onclick="startPracticeFromAILearn()">
+                        <span data-i18n="practiceThisMaterial">Осы материалмен практика</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="exitAITeacher()">
+                        <span data-i18n="exit">Шығу</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    
+    <main class="page-content hidden" id="aiFlashcardsPage">
+        <div class="ai-container">
+            <header class="ai-page-header">
+                <button class="back-btn" onclick="confirmExitAITeacher()">←</button>
+                <h1 class="ai-page-title" data-i18n="flashcards">Флеш карточкалар</h1>
+            </header>
+            
+            <div class="ai-flashcard-progress">
+                <span id="aiFlashcardProgressText">1/10</span>
+            </div>
+            
+            <div class="ai-flashcard-container">
+                <div class="ai-flashcard" id="aiFlashcard" onclick="flipAIFlashcard()">
+                    <div class="ai-flashcard-inner">
+                        <div class="ai-flashcard-front">
+                            <p id="aiFlashcardFrontText">Сұрақ</p>
+                        </div>
+                        <div class="ai-flashcard-back">
+                            <p id="aiFlashcardBackText">Жауап</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="ai-flashcard-hint" data-i18n="clickToFlip">Карточканы аудару үшін басыңыз</p>
+            
+            <div class="ai-flashcard-buttons">
+                <button class="ai-score-btn didnt-know" onclick="aiFlashcardAnswer(false)">
+                    <span data-i18n="didntKnow">Білмедім</span> 😔
+                </button>
+                <button class="ai-score-btn knew" onclick="aiFlashcardAnswer(true)">
+                    <span data-i18n="knew">Білдім</span> 😊
+                </button>
+            </div>
+        </div>
+    </main>
+
+    
+    <main class="page-content hidden" id="aiTestPage">
+        <div class="ai-container">
+            <header class="ai-page-header">
+                <button class="back-btn" onclick="confirmExitAITeacher()">←</button>
+                <h1 class="ai-page-title" id="aiTestTitle" data-i18n="test">Тест</h1>
+            </header>
+            
+            <div class="ai-question-nav" id="aiQuestionNav"></div>
+            
+            <div class="ai-test-content">
+                <div class="ai-question-card">
+                    <p class="ai-question-number" id="aiQuestionNumber">Сұрақ 1/10</p>
+                    <p class="ai-question-text" id="aiQuestionText">Сұрақ мәтіні</p>
+                    
+                    <div class="ai-answers" id="aiAnswers"></div>
+                    
+                    <div class="ai-explanation-container" id="aiExplanationContainer">
+                        <p class="ai-explanation-text" id="aiExplanationText"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-test-footer">
+                <div class="ai-test-navigation">
+                    <button class="btn btn-secondary" id="aiPrevBtn" onclick="prevAIQuestion()">
+                        ← <span data-i18n="prev">Алдыңғы</span>
+                    </button>
+                    <button class="btn btn-hint" id="aiHintBtn" onclick="useAIHint()">
+                        💡 <span data-i18n="hint">Көмек</span>
+                    </button>
+                    <button class="btn btn-secondary" id="aiNextBtn" onclick="nextAIQuestion()">
+                        <span data-i18n="next">Келесі</span> →
+                    </button>
+                </div>
+                
+                <div class="ai-result-section">
+                    <button class="btn btn-result" onclick="showAIResults()">
+                        📊 <span data-i18n="results">Нәтижелер</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    
+    <main class="page-content hidden" id="aiResultsPage">
+        <div class="ai-container ai-center-content">
+            <div class="ai-results-card">
+                <h1 class="ai-results-title" data-i18n="results">Нәтижелер</h1>
+                
+                <div class="ai-results-score">
+                    <span class="ai-score-number" id="aiScoreNumber">17/20</span>
+                    <span class="ai-score-percent" id="aiScorePercent">85%</span>
+                </div>
+                
+                <div class="ai-results-breakdown" id="aiResultsBreakdown"></div>
+                
+                <div class="ai-results-actions" id="aiResultsActions">
+                    <button class="btn btn-primary" onclick="repeatAITest()">
+                        🔄 <span data-i18n="repeat">Қайталау</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="continueWithOtherAI()">
+                        ➡️ <span data-i18n="continueOther">Басқа сұрақтармен жалғастыру</span>
+                    </button>
+                    <button class="btn btn-outline" onclick="exitAITeacher()">
+                        🚪 <span data-i18n="exit">Шығу</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
