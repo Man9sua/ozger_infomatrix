@@ -4,19 +4,15 @@ node_modules/
 # Cloudflare local state
 .wrangler/
 .dev.vars*
-!.dev.vars.example
-
-# Environment files
-.env
-.env.*
-!.env.example
-!.env.sample
 
 # Python virtual environments and caches
 venv/
 .venv/
 __pycache__/
 *.py[cod]
+*.pyc
+.pytest_cache/
+.mypy_cache/
 
 # Build and coverage output
 dist/
@@ -33,12 +29,17 @@ logs/
 tmp_unicode.txt
 recs.rmd
 
-# Docs
-*.md
-*.rmd
+# Test files (temporary)
+test_pdf_loading.py
+test_pdf_simple.py
+test_integration.py
 
 # Editor and OS files
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
+.vs/
