@@ -36,7 +36,7 @@ class GeminiService:
         genai.configure(api_key=self.api_key)
         
         self.temperature = 0.7
-        # Keep outputs very small to fit 30s PaaS budget.
+
         self.default_max_output_tokens = self._env_int(
             "GEMINI_MAX_OUTPUT_TOKENS", default=6000, min_value=512, max_value=32768
         )
@@ -58,17 +58,16 @@ class GeminiService:
         self.learn_history_target_chars = max(
             self.learn_target_chars, self.learn_history_target_chars
         )
-        # Hard caps to keep response time within 30s PaaS limits
+
         self.learn_target_chars = min(self.learn_target_chars, 25000)
         self.learn_history_target_chars = min(self.learn_history_target_chars, 32000)
         self.learn_max_output_tokens = min(self.learn_max_output_tokens, 4000)
 
-        # Model chain for automatic fallback on transient provider failures.
+
         self.model_names = self._load_model_chain()
         self._active_model_index = 0
         
-        # IMPORTANT: keep retries low; frontend expects one generation per click.
-        # If Gemini times out, user can retry manually.
+
         try:
             self.max_retries = max(1, int(os.getenv("GEMINI_MAX_RETRIES", "2")))
         except Exception:
@@ -76,9 +75,9 @@ class GeminiService:
         try:
             self.retry_delay = max(0.0, float(os.getenv("GEMINI_RETRY_DELAY", "2")))
         except Exception:
-            self.retry_delay = 2.0  # seconds
+            self.retry_delay = 2.0  # сек
         
-        # Large material processing controls (reduce request count)
+
         summarize_flag = os.getenv("GEMINI_SUMMARIZE_LARGE", "false").strip().lower()
         self.summarize_large = summarize_flag in ("1", "true", "yes")
         try:
@@ -95,7 +94,7 @@ class GeminiService:
         except Exception:
             self.max_chunk_chars = 200000
 
-        # In-memory cache for summarized materials (reduces repeat calls)
+
         try:
             self.summary_cache_max = int(os.getenv("GEMINI_SUMMARY_CACHE_MAX", "32"))
         except Exception:
@@ -103,7 +102,7 @@ class GeminiService:
         self.summary_cache_max = max(0, min(200, self.summary_cache_max))
         self._summary_cache: "OrderedDict[str, str]" = OrderedDict()
 
-        # Base system prompt for ENT preparation
+
         self.system_prompt = """
 Сен - ЕНТ дайындық үшін AI оқытушысың (Қазақстандағы мектеп түлектерінің бірыңғай ұлттық тестілеуі).
 
@@ -348,19 +347,18 @@ IMPORTANT RULES:
             self._cache_set(cache_key, truncated)
             return truncated
 
-        # Cap number of model calls: we must ensure we don't create hundreds of chunks for big PDFs.
+
         max_chunks = self.max_chunks
-        # Choose chunk size so we end up with ~max_chunks chunks (bounded).
+
         max_chars = int(math.ceil(len(material) / max_chunks))
-        # Keep chunks within reasonable size so Gemini stays stable.
+
         max_chars = max(self.min_chunk_chars, min(self.max_chunk_chars, max_chars))
         chunks = self._chunk_text(material, max_chars=max_chars, overlap=1200)
 
-        # Hard cap in case of pathological input
+
         if len(chunks) > max_chunks:
             chunks = chunks[:max_chunks]
 
-        # If chunking didn't help, fall back to a soft truncate with a warning marker
         if len(chunks) <= 1:
             truncated = material[:target_chars] + "\n\n[Материал қысқартылды (өте үлкен мәтін)]"
             self._cache_set(cache_key, truncated)
