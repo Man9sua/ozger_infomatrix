@@ -321,6 +321,14 @@ let userStats = {
     entTestsCompleted: 0
 };
 
+const ASSISTANT_CONTEXT_CACHE_TTL_MS = 30 * 1000;
+const ASSISTANT_MAX_KNOWLEDGE_SOURCES = 16;
+const ASSISTANT_ERROR_LOG_COOLDOWN_MS = 60 * 1000;
+
+const AssistantDiagnosticsState = {
+    errorCooldown: {}
+};
+
 // ==================== LIMITS & USAGE TRACKING ====================
 // Library test daily limit is disabled.
 const DAILY_EXTERNAL_TEST_LIMIT = null;
@@ -592,6 +600,41 @@ const i18n = {
         libraryDesc: 'Материалдар мен тесттер',
         uploadDesc: 'Материал немесе тест жүктеу',
         favoritesDesc: 'Сақталған материалдар',
+        assistantTitle: 'AI ассистент',
+        assistantDesc: 'Сайтты басқару, кеңес және жеке retrieval',
+        assistantSubtitle: 'Профильді, әлсіз тақырыптарды, қателерді және материалдарыңызды ескеріп, сайттың кез келген бөліміне бағыттайды',
+        assistantPlaceholder: 'Сұрағыңызды жазыңыз...',
+        assistantSend: 'Жіберу',
+        assistantThinking: 'AI ойланып жатыр...',
+        assistantWelcomeTitle: 'Жеке оқу көмекшісі',
+        assistantWelcomeText: 'Мен сайт бөлімдерін аша аламын, профиліңіз бен статистикаңызды ескеремін, соңғы қателеріңізді және материалдарыңызды пайдаланып келесі қадамды ұсынамын.',
+        assistantBack: 'Ассистентке оралу',
+        assistantMenu: 'AI навигатор',
+        assistantControlBadge: 'AI Control Center',
+        assistantLaunchTitle: 'AI ассистент енді сайттың негізгі басқару орталығы',
+        assistantLaunchDesc: 'Бөлімдерді ашады, профильге сүйеніп кеңес береді, соңғы қателерді ескереді және материалдарыңыз бойынша жауап береді.',
+        assistantLaunchTag1: 'Сайтты басқару',
+        assistantLaunchTag2: 'Жеке сессиялар',
+        assistantLaunchTag3: 'Материалдар retrieval',
+        assistantOpenChat: 'Чатты ашу',
+        assistantNewChat: 'Жаңа сессия',
+        assistantSessionHistory: 'Сессия тарихы',
+        assistantQuickAccess: 'Жылдам басқару',
+        assistantProfileContext: 'Профиль контексті',
+        assistantFocusContext: 'Фокус және әлсіз тұстар',
+        assistantErrorsContext: 'Соңғы қателер',
+        assistantKnowledgeContext: 'Қолдағы дереккөздер',
+        assistantNoSessions: 'Сақталған сессиялар әлі жоқ',
+        assistantNoProfileContext: 'Профиль әлі толық емес',
+        assistantNoFocusContext: 'Әлсіз тақырыптар әлі жиналған жоқ',
+        assistantNoErrorsContext: 'Соңғы қателер жоқ',
+        assistantNoKnowledgeContext: 'Материалдар табылмады',
+        assistantQuickLibrary: 'Кітапхана',
+        assistantQuickUpload: 'Жүктеу',
+        assistantQuickPractice: 'Жаттығу',
+        assistantQuickRealtest: 'Real Test',
+        assistantQuickFavorites: 'Таңдаулылар',
+        assistantQuickProfile: 'Профиль',
         historyKZ: 'Қазақстан тарихы',
         readingLit: 'Оқу сауаттылығы',
         mathLit: 'Мат. сауаттылық',
@@ -974,6 +1017,41 @@ const i18n = {
         libraryDesc: 'Материалы и тесты',
         uploadDesc: 'Загрузить материал или тест',
         favoritesDesc: 'Сохранённые материалы',
+        assistantTitle: 'AI ассистент',
+        assistantDesc: 'Управление сайтом, советы и персональный retrieval',
+        assistantSubtitle: 'Учитывает профиль, слабые темы, ошибки и ваши материалы, а затем ведёт по нужным разделам сайта',
+        assistantPlaceholder: 'Напишите ваш вопрос...',
+        assistantSend: 'Отправить',
+        assistantThinking: 'AI думает...',
+        assistantWelcomeTitle: 'Персональный помощник по учёбе',
+        assistantWelcomeText: 'Я могу открыть нужный раздел сайта, учесть ваш профиль и статистику, опереться на последние ошибки и материалы пользователя и подсказать следующий шаг.',
+        assistantBack: 'Вернуться к ассистенту',
+        assistantMenu: 'AI навигатор',
+        assistantControlBadge: 'AI Control Center',
+        assistantLaunchTitle: 'AI ассистент стал главным центром управления сайтом',
+        assistantLaunchDesc: 'Открывает разделы, советует по профилю, учитывает последние ошибки и отвечает по вашим материалам.',
+        assistantLaunchTag1: 'Контроль сайта',
+        assistantLaunchTag2: 'История сессий',
+        assistantLaunchTag3: 'Retrieval по материалам',
+        assistantOpenChat: 'Открыть чат',
+        assistantNewChat: 'Новая сессия',
+        assistantSessionHistory: 'История сессий',
+        assistantQuickAccess: 'Быстрое управление',
+        assistantProfileContext: 'Контекст профиля',
+        assistantFocusContext: 'Фокус и слабые места',
+        assistantErrorsContext: 'Последние ошибки',
+        assistantKnowledgeContext: 'Подключённые источники',
+        assistantNoSessions: 'Сохранённых сессий пока нет',
+        assistantNoProfileContext: 'Профиль ещё не заполнен',
+        assistantNoFocusContext: 'Слабые темы пока не собраны',
+        assistantNoErrorsContext: 'Последних ошибок нет',
+        assistantNoKnowledgeContext: 'Материалы не найдены',
+        assistantQuickLibrary: 'Библиотека',
+        assistantQuickUpload: 'Загрузка',
+        assistantQuickPractice: 'Практика',
+        assistantQuickRealtest: 'Real Test',
+        assistantQuickFavorites: 'Избранное',
+        assistantQuickProfile: 'Профиль',
         historyKZ: 'История Казахстана',
         readingLit: 'Грамотность чтения',
         mathLit: 'Мат. грамотность',
@@ -1356,6 +1434,41 @@ const i18n = {
         libraryDesc: 'Materials and tests',
         uploadDesc: 'Upload material or test',
         favoritesDesc: 'Saved materials',
+        assistantTitle: 'AI Assistant',
+        assistantDesc: 'Site control, guidance, and personal retrieval',
+        assistantSubtitle: 'Uses your profile, weak topics, errors, and personal materials to guide you across the whole site',
+        assistantPlaceholder: 'Ask anything...',
+        assistantSend: 'Send',
+        assistantThinking: 'AI is thinking...',
+        assistantWelcomeTitle: 'Personal study copilot',
+        assistantWelcomeText: 'I can open site sections, use your real profile and stats, look at recent errors, and answer from your own materials before suggesting the next step.',
+        assistantBack: 'Back to assistant',
+        assistantMenu: 'AI Navigator',
+        assistantControlBadge: 'AI Control Center',
+        assistantLaunchTitle: 'AI assistant is now the main control center of the site',
+        assistantLaunchDesc: 'It opens sections, adapts to your profile, uses recent errors, and answers with retrieval over your own materials.',
+        assistantLaunchTag1: 'Site control',
+        assistantLaunchTag2: 'Session history',
+        assistantLaunchTag3: 'Materials retrieval',
+        assistantOpenChat: 'Open chat',
+        assistantNewChat: 'New session',
+        assistantSessionHistory: 'Session history',
+        assistantQuickAccess: 'Quick controls',
+        assistantProfileContext: 'Profile context',
+        assistantFocusContext: 'Focus and weak spots',
+        assistantErrorsContext: 'Recent errors',
+        assistantKnowledgeContext: 'Connected sources',
+        assistantNoSessions: 'No saved sessions yet',
+        assistantNoProfileContext: 'Profile context is still empty',
+        assistantNoFocusContext: 'Weak topics have not been collected yet',
+        assistantNoErrorsContext: 'No recent errors',
+        assistantNoKnowledgeContext: 'No materials found',
+        assistantQuickLibrary: 'Library',
+        assistantQuickUpload: 'Upload',
+        assistantQuickPractice: 'Practice',
+        assistantQuickRealtest: 'Real Test',
+        assistantQuickFavorites: 'Favorites',
+        assistantQuickProfile: 'Profile',
         historyKZ: 'Kazakhstan History',
         readingLit: 'Reading Literacy',
         mathLit: 'Math Literacy',
@@ -1973,6 +2086,10 @@ function showToast(message, type = 'info', duration = 5000) {
         toast.classList.add('toast-out');
         setTimeout(() => toast.remove(), 300);
     });
+
+    if (type === 'error') {
+        logAssistantErrorToSupabase(message, { category: 'ui_toast' }).catch(() => {});
+    }
 }
 
 // ==================== NAVIGATION ====================
@@ -1993,6 +2110,7 @@ function hideAllPages() {
     document.getElementById('learningPage')?.classList.add('hidden');
     document.getElementById('libraryPage')?.classList.add('hidden');
     document.getElementById('favoritesPage')?.classList.add('hidden');
+    document.getElementById('assistantPage')?.classList.add('hidden');
     document.getElementById('guessGamePage')?.classList.add('hidden');
     document.getElementById('profilePage')?.classList.add('hidden');
     document.getElementById('classmatesPage')?.classList.add('hidden');
@@ -2061,6 +2179,7 @@ function showLearning() {
 }
 
 async function showLibrary() {
+    recordAssistantExperience('page_open', { route: 'library', action: 'library' });
     hideAllPages();
     document.getElementById('libraryPage')?.classList.remove('hidden');
 
@@ -2082,6 +2201,7 @@ async function showLibrary() {
 
 
 function showFavorites() {
+    recordAssistantExperience('page_open', { route: 'favorites', action: 'favorites' });
     hideAllPages();
     document.getElementById('favoritesPage')?.classList.remove('hidden');
     renderFavorites();
@@ -2214,6 +2334,7 @@ function getSubjectNames() {
 }
 
 function showUploadModal() {
+    recordAssistantExperience('page_open', { route: 'upload', action: 'upload' });
     startUpload('test');
 }
 
@@ -2826,6 +2947,14 @@ function applyTranslations() {
     
     updateDailyTestLimitUI();
     updateAIUsageUI();
+
+    if (!document.getElementById('assistantPage')?.classList.contains('hidden')) {
+        AssistantState.suggestions = getAssistantDefaultPrompts();
+        renderAssistantMessages();
+        renderAssistantSuggestions();
+        renderAssistantSessions();
+        renderAssistantInsights();
+    }
 }
 
 // ==================== FAQ ====================
@@ -6458,10 +6587,9 @@ function initEventListeners() {
     });
     
     
-    document.getElementById('myMaterialsBtn')?.addEventListener('click', () => {
+    document.getElementById('assistantMenuBtn')?.addEventListener('click', () => {
         closeSidePanelRight();
-        showLibrary();
-        setTimeout(() => setLibraryFilter('owner', 'my'), 100);
+        showAssistant();
     });
     
     
@@ -6521,6 +6649,19 @@ function initEventListeners() {
     document.getElementById('blurOverlay')?.addEventListener('click', () => {
         closeAllSidePanels();
         closeAllModals();
+    });
+
+    document.getElementById('assistantSendBtn')?.addEventListener('click', () => {
+        sendAssistantMessage();
+    });
+    document.getElementById('assistantNewSessionBtn')?.addEventListener('click', () => {
+        handleAssistantNewSession();
+    });
+    document.getElementById('assistantInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendAssistantMessage();
+        }
     });
     
     
@@ -6749,6 +6890,7 @@ async function loadGuessGameData() {
 }
 
 function showGuessGame() {
+    recordAssistantExperience('page_open', { route: 'guess_game', action: 'guess_game' });
     hideAllPages();
     document.getElementById('guessGamePage')?.classList.remove('hidden');
     
@@ -7016,19 +7158,1146 @@ function endGuessGame() {
     document.getElementById('guessBestStreak').textContent = guessBestStreak;
 }
 
+// ==================== AI ASSISTANT ====================
+const AssistantState = {
+    history: [],
+    suggestions: [],
+    pending: false,
+    sessions: [],
+    currentSessionId: null,
+    knowledgeSources: [],
+    contextSummary: null,
+    lastContextLoadAt: 0,
+    initializedUserId: null
+};
+
+function getAssistantDefaultPrompts() {
+    if (currentLang === 'ru') {
+        return [
+            'Открой мою библиотеку и покажи, с чего начать',
+            'Покажи мои слабые темы и составь план',
+            'Найди ответ в моих материалах'
+        ];
+    }
+    if (currentLang === 'en') {
+        return [
+            'Open my library and show where to start',
+            'Show my weak topics and build a plan',
+            'Answer using my own materials'
+        ];
+    }
+    return [
+        'Кітапханамды аш та неден бастау керегін айт',
+        'Әлсіз тақырыптарымды көрсетіп, жоспар құр',
+        'Жауапты менің материалдарымнан тап'
+    ];
+}
+
+function assistantSupportsPersistence() {
+    return !!(currentUser?.id && supabaseClient);
+}
+
+function truncateAssistantText(value, max = 160) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (!text) return '';
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function safeAssistantJsonArray(value) {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
+function safeAssistantJsonObject(value) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+        } catch {
+            return {};
+        }
+    }
+    return {};
+}
+
+function assistantTimeAgo(dateValue) {
+    const timestamp = new Date(dateValue || Date.now()).getTime();
+    if (!Number.isFinite(timestamp)) return '';
+    const diffMs = Date.now() - timestamp;
+    const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+
+    if (diffMinutes < 60) {
+        if (currentLang === 'ru') return `${diffMinutes} мин назад`;
+        if (currentLang === 'en') return `${diffMinutes} min ago`;
+        return `${diffMinutes} мин бұрын`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+        if (currentLang === 'ru') return `${diffHours} ч назад`;
+        if (currentLang === 'en') return `${diffHours} h ago`;
+        return `${diffHours} сағ бұрын`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (currentLang === 'ru') return `${diffDays} д назад`;
+    if (currentLang === 'en') return `${diffDays} d ago`;
+    return `${diffDays} к бұрын`;
+}
+
+function buildAssistantSessionTitle(message) {
+    return truncateAssistantText(message, 64) || t('assistantNewChat');
+}
+
+function isAssistantPersistentSessionId(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+}
+
+function getCurrentVisiblePageName() {
+    const checks = [
+        ['assistantPage', 'assistant'],
+        ['libraryPage', 'library'],
+        ['favoritesPage', 'favorites'],
+        ['guessGamePage', 'guess_game'],
+        ['aiLearnPage', 'ai_learn'],
+        ['aiTestPage', 'ai_test'],
+        ['profilePage', 'profile'],
+        ['homePage', 'home']
+    ];
+    for (const [id, name] of checks) {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden')) return name;
+    }
+    return 'unknown';
+}
+
+function extractAssistantTestItems(rawQuestions) {
+    const parsed = safeAssistantJsonObject(rawQuestions);
+    if (Array.isArray(parsed.items)) return parsed.items;
+    if (Array.isArray(rawQuestions)) return rawQuestions;
+    return [];
+}
+
+function buildAssistantTestKnowledgeText(test) {
+    const lines = [];
+    if (test?.content) lines.push(String(test.content));
+
+    const questions = extractAssistantTestItems(test?.questions);
+    questions.slice(0, 8).forEach((item, index) => {
+        const question = String(item?.question || item?.text || item?.prompt || '').trim();
+        const options = Array.isArray(item?.options) ? item.options.filter(Boolean) : [];
+        if (!question) return;
+        const optionPreview = options.length ? ` | ${options.slice(0, 4).join(' / ')}` : '';
+        lines.push(`${index + 1}. ${question}${optionPreview}`);
+    });
+
+    return truncateAssistantText(lines.join('\n').trim(), 2800);
+}
+
+function normalizeAssistantKnowledgeSource(source) {
+    if (!source || typeof source !== 'object') return null;
+    const rawSourceType = String(source.source_type || source.type || '').trim();
+    const sourceType = ['user_material', 'user_test', 'active_material'].includes(rawSourceType)
+        ? 'material'
+        : rawSourceType;
+    const sourceId = String(source.source_id || source.id || '').trim();
+    const title = truncateAssistantText(source.title || source.name || sourceId, 100);
+    const text = truncateAssistantText(source.material_text || source.text || source.content || '', 3200);
+    if (!sourceType || !sourceId || !title || !text) return null;
+
+    return {
+        source_type: sourceType,
+        source_id: sourceId,
+        title,
+        subject: String(source.subject || '').trim(),
+        text,
+        updated_at: source.updated_at || source.created_at || new Date().toISOString()
+    };
+}
+
+function findAssistantKnowledgeSource(sourceType, sourceId) {
+    const normalizedType = String(sourceType || '').trim();
+    const normalizedId = String(sourceId || '').trim();
+    return AssistantState.knowledgeSources.find(source =>
+        source.source_type === normalizedType && String(source.source_id) === normalizedId
+    ) || null;
+}
+
+async function loadAssistantKnowledgeSources(force = false) {
+    if (!currentUser?.id) {
+        AssistantState.knowledgeSources = [];
+        return [];
+    }
+
+    const cacheFresh = !force &&
+        AssistantState.knowledgeSources.length > 0 &&
+        (Date.now() - AssistantState.lastContextLoadAt) < ASSISTANT_CONTEXT_CACHE_TTL_MS;
+    if (cacheFresh) return AssistantState.knowledgeSources;
+
+    const ready = await ensureSupabaseReady();
+    if (!ready || !supabaseClient) {
+        AssistantState.knowledgeSources = [];
+        return [];
+    }
+
+    const [testsResult, materialsResult] = await Promise.all([
+        supabaseClient
+            .from('tests')
+            .select('id,title,subject,content,questions,created_at,updated_at')
+            .eq('user_id', currentUser.id)
+            .order('updated_at', { ascending: false })
+            .limit(10),
+        supabaseClient
+            .from('materials')
+            .select('id,title,subject,content,type,created_at,updated_at')
+            .eq('user_id', currentUser.id)
+            .order('updated_at', { ascending: false })
+            .limit(10)
+    ]);
+
+    const sources = [];
+    if (!testsResult.error && Array.isArray(testsResult.data)) {
+        testsResult.data.forEach(test => {
+            const text = buildAssistantTestKnowledgeText(test);
+            if (!text) return;
+            sources.push({
+                source_type: 'material',
+                source_id: String(test.id),
+                title: truncateAssistantText(test.title || 'Test', 96),
+                subject: String(test.subject || '').trim(),
+                text,
+                updated_at: test.updated_at || test.created_at || new Date().toISOString()
+            });
+        });
+    }
+
+    if (!materialsResult.error && Array.isArray(materialsResult.data)) {
+        materialsResult.data.forEach(material => {
+            const normalized = normalizeAssistantKnowledgeSource({
+                source_type: 'material',
+                source_id: material.id,
+                title: material.title,
+                subject: material.subject,
+                text: material.content,
+                updated_at: material.updated_at || material.created_at
+            });
+            if (normalized) sources.push(normalized);
+        });
+    }
+
+    if (AITeacher.materialId && AITeacher.latestMaterialPreview) {
+        const activeSource = normalizeAssistantKnowledgeSource({
+            source_type: 'material',
+            source_id: AITeacher.materialId,
+            title: 'Active AI material',
+            text: AITeacher.latestMaterialPreview,
+            updated_at: new Date().toISOString()
+        });
+        if (activeSource) {
+            sources.unshift(activeSource);
+        }
+    }
+
+    const uniqueSources = [];
+    const seenKeys = new Set();
+    sources.forEach(source => {
+        const key = `${source.source_type}:${source.source_id}`;
+        if (seenKeys.has(key)) return;
+        seenKeys.add(key);
+        uniqueSources.push(source);
+    });
+
+    AssistantState.knowledgeSources = uniqueSources.slice(0, ASSISTANT_MAX_KNOWLEDGE_SOURCES);
+    return AssistantState.knowledgeSources;
+}
+
+async function loadAssistantContextSnapshot(force = false) {
+    if (!currentUser?.id) {
+        AssistantState.contextSummary = null;
+        return null;
+    }
+
+    const cacheFresh = !force &&
+        AssistantState.contextSummary &&
+        (Date.now() - AssistantState.lastContextLoadAt) < ASSISTANT_CONTEXT_CACHE_TTL_MS;
+    if (cacheFresh) return AssistantState.contextSummary;
+
+    const ready = await ensureSupabaseReady();
+    if (!ready || !supabaseClient) {
+        AssistantState.contextSummary = null;
+        return null;
+    }
+
+    const [profileResult, statsResult, errorsResult, knowledgeSources] = await Promise.all([
+        supabaseClient
+            .from('profiles')
+            .select('username,email,country,city,school,class,class_number,class_letter,subject_combination,subject1,subject2')
+            .eq('user_id', currentUser.id)
+            .single(),
+        supabaseClient
+            .from('user_stats')
+            .select('total_tests,guess_streak,guess_best_streak,ent_best_score,ent_tests_completed')
+            .eq('user_id', currentUser.id)
+            .single(),
+        supabaseClient
+            .from('assistant_events')
+            .select('message,route,action,created_at')
+            .eq('user_id', currentUser.id)
+            .eq('event_type', 'error')
+            .order('created_at', { ascending: false })
+            .limit(5),
+        loadAssistantKnowledgeSources(force)
+    ]);
+
+    const profileFromDb = (!profileResult.error && profileResult.data) ? profileResult.data : {};
+    const statsFromDb = (!statsResult.error && statsResult.data) ? statsResult.data : {};
+    const recentErrors = (!errorsResult.error && Array.isArray(errorsResult.data)) ? errorsResult.data : [];
+
+    AssistantState.contextSummary = {
+        profile: {
+            username: profileFromDb.username || userProfile?.username || currentUser?.user_metadata?.username || '',
+            email: profileFromDb.email || currentUser?.email || '',
+            country: profileFromDb.country || userProfile?.country || '',
+            city: profileFromDb.city || userProfile?.city || '',
+            school: profileFromDb.school || userProfile?.school || '',
+            class: profileFromDb.class || userProfile?.class || '',
+            class_number: profileFromDb.class_number || userProfile?.classNumber || '',
+            class_letter: profileFromDb.class_letter || userProfile?.classLetter || '',
+            subject_combination: profileFromDb.subject_combination || userProfile?.subjectCombination || '',
+            subject1: profileFromDb.subject1 || userProfile?.subject1 || '',
+            subject2: profileFromDb.subject2 || userProfile?.subject2 || ''
+        },
+        stats: {
+            total_tests: statsFromDb.total_tests ?? userStats.totalTests ?? 0,
+            guess_streak: statsFromDb.guess_streak ?? userStats.guessStreak ?? 0,
+            guess_best_streak: statsFromDb.guess_best_streak ?? userStats.guessBestStreak ?? 0,
+            ent_best_score: statsFromDb.ent_best_score ?? userStats.entBestScore ?? 0,
+            ent_tests_completed: statsFromDb.ent_tests_completed ?? userStats.entTestsCompleted ?? 0
+        },
+        recentErrors,
+        knowledgeSourcesCount: Array.isArray(knowledgeSources) ? knowledgeSources.length : 0
+    };
+    AssistantState.lastContextLoadAt = Date.now();
+    return AssistantState.contextSummary;
+}
+
+function buildAssistantUserProfile() {
+    const summary = AssistantState.contextSummary || {};
+    const profile = summary.profile || {};
+    const stats = summary.stats || {};
+
+    return {
+        id: currentUser?.id || 'guest',
+        username: currentUser?.user_metadata?.username || profile.username || userProfile?.username || '',
+        email: currentUser?.email || profile.email || '',
+        country: profile.country || '',
+        city: profile.city || '',
+        school: profile.school || '',
+        class: profile.class || '',
+        class_number: profile.class_number || '',
+        class_letter: profile.class_letter || '',
+        subject_combination: profile.subject_combination || '',
+        subject1: profile.subject1 || '',
+        subject2: profile.subject2 || '',
+        total_tests: stats.total_tests || 0,
+        guess_streak: stats.guess_streak || 0,
+        guess_best_streak: stats.guess_best_streak || 0,
+        ent_best_score: stats.ent_best_score || 0,
+        ent_tests_completed: stats.ent_tests_completed || 0
+    };
+}
+
+function buildAssistantDiagnosticsPayload() {
+    const summary = AssistantState.contextSummary || {};
+    const recentErrors = Array.isArray(summary.recentErrors) ? summary.recentErrors : [];
+
+    return {
+        recent_errors: recentErrors.map(item => ({
+            message: truncateAssistantText(item.message, 220),
+            route: item.route || '',
+            category: item.action || '',
+            created_at: item.created_at || ''
+        })),
+        session_titles: AssistantState.sessions.slice(0, 6).map(session => session.title || ''),
+        knowledge_sources_count: AssistantState.knowledgeSources.length
+    };
+}
+
+function ensureAssistantIntro() {
+    if (AssistantState.history.length > 0) return;
+    AssistantState.history.push({
+        role: 'assistant',
+        title: t('assistantWelcomeTitle') || 'Personal study copilot',
+        content: t('assistantWelcomeText') || 'I can help you navigate the site, decide what to review next, and generate a quiz on a historical figure.',
+        ephemeral: true,
+        actions: [
+            { type: 'prompt', label: getAssistantDefaultPrompts()[0], prompt: getAssistantDefaultPrompts()[0] },
+            { type: 'prompt', label: getAssistantDefaultPrompts()[1], prompt: getAssistantDefaultPrompts()[1] }
+        ],
+        citations: []
+    });
+    AssistantState.suggestions = getAssistantDefaultPrompts();
+}
+
+function buildAssistantPageContext() {
+    const aiUsage = typeof getAIUsageState === 'function' ? getAIUsageState() : { remaining: null, limit: null };
+    return {
+        route: getCurrentVisiblePageName(),
+        current_library_tab: currentLibraryTab,
+        current_subject_filter: currentSubjectFilter,
+        ai_usage_remaining: aiUsage.remaining,
+        ai_usage_limit: aiUsage.limit,
+        has_material_id: !!AITeacher.materialId,
+        assistant_session_count: AssistantState.sessions.length,
+        available_routes: ['home', 'library', 'upload', 'favorites', 'guess_game', 'ai_learn', 'ai_practice', 'ai_realtest', 'assistant', 'profile', 'classmates']
+    };
+}
+
+function getAssistantModelHistory() {
+    return AssistantState.history
+        .filter(item => !item.ephemeral)
+        .slice(-10)
+        .map(item => ({
+            role: item.role,
+            content: String(item.content || '')
+        }));
+}
+
+function upsertAssistantSession(session) {
+    const normalized = {
+        ...session,
+        title: truncateAssistantText(session.title || t('assistantNewChat'), 72),
+        preview: truncateAssistantText(session.preview || '', 110),
+        updated_at: session.updated_at || new Date().toISOString()
+    };
+    const nextSessions = AssistantState.sessions.filter(item => item.id !== normalized.id);
+    nextSessions.push(normalized);
+    nextSessions.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    AssistantState.sessions = nextSessions;
+    return normalized;
+}
+
+async function loadAssistantSessions(force = false) {
+    if (!currentUser?.id) {
+        AssistantState.sessions = [];
+        return [];
+    }
+
+    const cacheFresh = !force &&
+        AssistantState.initializedUserId === currentUser.id &&
+        AssistantState.sessions.length > 0;
+    if (cacheFresh) return AssistantState.sessions;
+    if (!assistantSupportsPersistence()) return AssistantState.sessions;
+
+    const { data, error } = await supabaseClient
+        .from('assistant_sessions')
+        .select('id,title,last_message_preview,created_at,updated_at,last_message_at')
+        .eq('user_id', currentUser.id)
+        .order('last_message_at', { ascending: false })
+        .limit(40);
+
+    if (error) {
+        console.warn('Assistant sessions are unavailable:', error);
+        return AssistantState.sessions;
+    }
+
+    AssistantState.sessions = (data || []).map(session => ({
+        id: session.id,
+        title: truncateAssistantText(session.title || t('assistantNewChat'), 72),
+        preview: truncateAssistantText(session.last_message_preview || '', 110),
+        created_at: session.created_at,
+        updated_at: session.updated_at || session.last_message_at
+    }));
+    return AssistantState.sessions;
+}
+
+async function createAssistantSession(title = '') {
+    const nowIso = new Date().toISOString();
+    const fallbackTitle = truncateAssistantText(title || t('assistantNewChat'), 72);
+    return upsertAssistantSession({
+        id: `local-${Date.now()}`,
+        title: fallbackTitle,
+        preview: '',
+        created_at: nowIso,
+        updated_at: nowIso,
+        messages: []
+    });
+}
+
+async function updateAssistantSessionSnapshot(sessionId, patch = {}) {
+    if (!sessionId) return;
+    const currentSession = AssistantState.sessions.find(item => item.id === sessionId) || {};
+    const merged = upsertAssistantSession({
+        ...currentSession,
+        ...patch,
+        id: sessionId,
+        updated_at: patch.updated_at || new Date().toISOString()
+    });
+
+    return merged;
+}
+
+async function persistAssistantMessage(sessionId, entry) {
+    if (!sessionId || !entry || entry.ephemeral) return;
+    const content = String(entry.content || '').trim();
+    if (!content) return;
+
+    if (!assistantSupportsPersistence() || !isAssistantPersistentSessionId(sessionId)) {
+        const session = AssistantState.sessions.find(item => item.id === sessionId);
+        if (session) {
+            if (!Array.isArray(session.messages)) session.messages = [];
+            session.messages.push({
+                role: entry.role,
+                title: entry.title || '',
+                content,
+                actions: safeAssistantJsonArray(entry.actions),
+                citations: safeAssistantJsonArray(entry.citations),
+                created_at: new Date().toISOString()
+            });
+        }
+        return;
+    }
+}
+
+async function loadAssistantMessages(sessionId) {
+    if (!sessionId) return [];
+
+    if (!assistantSupportsPersistence() || !isAssistantPersistentSessionId(sessionId)) {
+        const localSession = AssistantState.sessions.find(item => item.id === sessionId);
+        return Array.isArray(localSession?.messages) ? localSession.messages : [];
+    }
+
+    const { data, error } = await supabaseClient
+        .from('assistant_messages')
+        .select('role,title,content,actions,citations,created_at')
+        .eq('session_id', sessionId)
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.warn('Assistant messages are unavailable:', error);
+        return [];
+    }
+
+    return (data || []).map(item => ({
+        role: item.role || 'assistant',
+        title: item.title || '',
+        content: item.content || '',
+        actions: safeAssistantJsonArray(item.actions),
+        citations: safeAssistantJsonArray(item.citations),
+        created_at: item.created_at
+    }));
+}
+
+async function switchAssistantSession(sessionId) {
+    if (!sessionId) return;
+    const messages = await loadAssistantMessages(sessionId);
+    AssistantState.currentSessionId = sessionId;
+    AssistantState.history = Array.isArray(messages) ? messages.slice() : [];
+    ensureAssistantIntro();
+    renderAssistantSessions();
+    renderAssistantMessages();
+    renderAssistantSuggestions();
+    renderAssistantInsights();
+}
+
+async function handleAssistantNewSession() {
+    const session = await createAssistantSession(t('assistantNewChat'));
+    AssistantState.currentSessionId = session.id;
+    AssistantState.history = [];
+    AssistantState.suggestions = getAssistantDefaultPrompts();
+    ensureAssistantIntro();
+    renderAssistantSessions();
+    renderAssistantMessages();
+    renderAssistantSuggestions();
+    renderAssistantInsights();
+    document.getElementById('assistantInput')?.focus();
+}
+
+async function ensureAssistantWorkspaceLoaded(force = false) {
+    if (!currentUser?.id) return false;
+
+    const userChanged = AssistantState.initializedUserId !== currentUser.id;
+    if (userChanged) {
+        AssistantState.history = [];
+        AssistantState.sessions = [];
+        AssistantState.currentSessionId = null;
+        AssistantState.knowledgeSources = [];
+        AssistantState.contextSummary = null;
+    }
+
+    await loadAssistantContextSnapshot(force || userChanged);
+    await loadAssistantSessions(force || userChanged);
+    AssistantState.initializedUserId = currentUser.id;
+
+    if (!AssistantState.currentSessionId) {
+        if (AssistantState.sessions.length > 0) {
+            await switchAssistantSession(AssistantState.sessions[0].id);
+        } else {
+            await handleAssistantNewSession();
+        }
+    } else if (force || userChanged) {
+        await switchAssistantSession(AssistantState.currentSessionId);
+    } else {
+        ensureAssistantIntro();
+        renderAssistantSessions();
+        renderAssistantMessages();
+        renderAssistantSuggestions();
+        renderAssistantInsights();
+    }
+
+    return true;
+}
+
+function renderAssistantSessions() {
+    const container = document.getElementById('assistantSessionList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!AssistantState.sessions.length) {
+        const empty = document.createElement('div');
+        empty.className = 'assistant-context-item assistant-empty-state';
+        empty.textContent = t('assistantNoSessions');
+        container.appendChild(empty);
+        return;
+    }
+
+    AssistantState.sessions.forEach(session => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `assistant-session-item${session.id === AssistantState.currentSessionId ? ' active' : ''}`;
+        button.onclick = () => switchAssistantSession(session.id);
+
+        const title = document.createElement('div');
+        title.className = 'assistant-session-item-title';
+        title.textContent = session.title || t('assistantNewChat');
+
+        const meta = document.createElement('div');
+        meta.className = 'assistant-session-item-meta';
+        meta.textContent = session.preview
+            ? `${session.preview} • ${assistantTimeAgo(session.updated_at)}`
+            : assistantTimeAgo(session.updated_at);
+
+        button.appendChild(title);
+        button.appendChild(meta);
+        container.appendChild(button);
+    });
+}
+
+function renderAssistantSuggestions() {
+    const container = document.getElementById('assistantSuggestions');
+    if (!container) return;
+    container.innerHTML = '';
+
+    AssistantState.suggestions.slice(0, 4).forEach(promptText => {
+        const btn = document.createElement('button');
+        btn.className = 'assistant-chip';
+        btn.type = 'button';
+        btn.textContent = promptText;
+        btn.onclick = () => sendAssistantMessage(promptText);
+        container.appendChild(btn);
+    });
+}
+
+function createAssistantMessageNode(entry) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `assistant-message assistant-message-${entry.role || 'assistant'}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'assistant-bubble';
+
+    if (entry.title) {
+        const title = document.createElement('div');
+        title.className = 'assistant-message-title';
+        title.textContent = entry.title;
+        bubble.appendChild(title);
+    }
+
+    const text = document.createElement('div');
+    text.className = 'assistant-message-text';
+    text.textContent = entry.content || '';
+    bubble.appendChild(text);
+
+    const actions = Array.isArray(entry.actions) ? entry.actions : [];
+    if (actions.length > 0) {
+        const actionRow = document.createElement('div');
+        actionRow.className = 'assistant-action-row';
+        actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'assistant-action-btn';
+            btn.textContent = action.label || action.prompt || action.route || action.type;
+            btn.onclick = () => executeAssistantAction(action);
+            actionRow.appendChild(btn);
+        });
+        bubble.appendChild(actionRow);
+    }
+
+    const citations = Array.isArray(entry.citations) ? entry.citations : [];
+    if (citations.length > 0) {
+        const citationRow = document.createElement('div');
+        citationRow.className = 'assistant-citation-row';
+        citations.forEach(citation => {
+            const pill = document.createElement('span');
+            pill.className = 'assistant-citation-pill';
+            pill.textContent = citation.title || citation.source_id || 'source';
+            citationRow.appendChild(pill);
+        });
+        bubble.appendChild(citationRow);
+    }
+
+    wrapper.appendChild(bubble);
+    return wrapper;
+}
+
+function renderAssistantMessages() {
+    const container = document.getElementById('assistantMessages');
+    if (!container) return;
+    container.innerHTML = '';
+
+    AssistantState.history.forEach(entry => {
+        container.appendChild(createAssistantMessageNode(entry));
+    });
+
+    if (AssistantState.pending) {
+        container.appendChild(
+            createAssistantMessageNode({
+                role: 'assistant',
+                content: t('assistantThinking') || 'AI is thinking...'
+            })
+        );
+    }
+
+    container.scrollTop = container.scrollHeight;
+
+    const currentSession = AssistantState.sessions.find(item => item.id === AssistantState.currentSessionId);
+    const metaEl = document.getElementById('assistantSessionMeta');
+    if (metaEl) {
+        const title = currentSession?.title || t('assistantNewChat');
+        const time = currentSession?.updated_at ? assistantTimeAgo(currentSession.updated_at) : '';
+        metaEl.textContent = time ? `${title} • ${time}` : title;
+    }
+}
+
+function setAssistantPending(pending) {
+    AssistantState.pending = !!pending;
+    const sendBtn = document.getElementById('assistantSendBtn');
+    const input = document.getElementById('assistantInput');
+    if (sendBtn) sendBtn.disabled = !!pending;
+    if (input) input.disabled = !!pending;
+    renderAssistantMessages();
+}
+
+function renderAssistantContextList(containerId, entries, emptyText) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!Array.isArray(entries) || entries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'assistant-context-item assistant-empty-state';
+        empty.textContent = emptyText;
+        container.appendChild(empty);
+        return;
+    }
+
+    entries.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'assistant-context-item';
+
+        if (entry.title) {
+            const strong = document.createElement('strong');
+            strong.textContent = entry.title;
+            item.appendChild(strong);
+        }
+
+        const text = document.createElement('div');
+        text.textContent = entry.text || '';
+        item.appendChild(text);
+        container.appendChild(item);
+    });
+}
+
+function renderAssistantInsights() {
+    const summary = AssistantState.contextSummary || {};
+    const profile = summary.profile || {};
+    const stats = summary.stats || {};
+    const recentErrors = Array.isArray(summary.recentErrors) ? summary.recentErrors : [];
+    const weakTopics = Array.isArray(summary.weakTopics) ? summary.weakTopics : [];
+    const remoteSources = Array.isArray(summary.materialSourcesBackend) ? summary.materialSourcesBackend : [];
+    const currentSession = AssistantState.sessions.find(item => item.id === AssistantState.currentSessionId);
+
+    const profileEntries = [];
+    if (profile.username || profile.school || profile.subject_combination) {
+        profileEntries.push({
+            title: profile.username || currentUser?.user_metadata?.username || t('guest'),
+            text: [
+                profile.school || '',
+                profile.class || [profile.class_number, profile.class_letter].filter(Boolean).join(''),
+                profile.subject_combination || [profile.subject1, profile.subject2].filter(Boolean).join(' / ')
+            ].filter(Boolean).join(' • ')
+        });
+    }
+    if (stats.total_tests || stats.ent_best_score || stats.guess_best_streak) {
+        profileEntries.push({
+            title: t('statistics'),
+            text: [
+                `${t('testsCompleted')}: ${stats.total_tests || 0}`,
+                `${t('bestENT')}: ${stats.ent_best_score || 0}`,
+                `Guess streak: ${stats.guess_best_streak || 0}`
+            ].join(' • ')
+        });
+    }
+
+    const focusEntries = [];
+    if (currentSession?.title) {
+        focusEntries.push({
+            title: currentSession.title,
+            text: truncateAssistantText(currentSession.preview || t('assistantWelcomeText'), 120)
+        });
+    }
+    if (weakTopics.length > 0) {
+        focusEntries.push({
+            title: t('assistantFocusContext'),
+            text: weakTopics.slice(0, 4).join(' • ')
+        });
+    }
+    if (AssistantState.knowledgeSources.length > 0) {
+        focusEntries.push({
+            title: t('assistantKnowledgeContext'),
+            text: `${AssistantState.knowledgeSources.length} connected source(s)`
+        });
+    }
+
+    const errorEntries = recentErrors.map(item => ({
+        title: [item.action || item.topic || '', item.route || 'site'].filter(Boolean).join(' • '),
+        text: truncateAssistantText(item.message || `${item.topic || ''} • ${item.percent || 0}%`, 120)
+    }));
+
+    const sourceEntries = [...AssistantState.knowledgeSources, ...remoteSources].slice(0, 4).map(source => ({
+        title: source.title,
+        text: [source.source_type, source.subject, assistantTimeAgo(source.updated_at)].filter(Boolean).join(' • ')
+    }));
+
+    renderAssistantContextList('assistantProfileSummary', profileEntries, t('assistantNoProfileContext'));
+    renderAssistantContextList('assistantFocusSummary', focusEntries, t('assistantNoFocusContext'));
+    renderAssistantContextList('assistantErrorSummary', errorEntries, t('assistantNoErrorsContext'));
+    renderAssistantContextList('assistantSourceSummary', sourceEntries, t('assistantNoKnowledgeContext'));
+}
+
+async function logAssistantErrorToSupabase(message, meta = {}) {
+    const normalizedMessage = truncateAssistantText(message, 500);
+    if (!normalizedMessage || !currentUser?.id) return;
+
+    const route = typeof getCurrentVisiblePageName === 'function' ? getCurrentVisiblePageName() : 'unknown';
+    const signature = `${route}:${normalizedMessage}`;
+    const lastSentAt = AssistantDiagnosticsState.errorCooldown[signature] || 0;
+    if ((Date.now() - lastSentAt) < ASSISTANT_ERROR_LOG_COOLDOWN_MS) return;
+
+    const ready = await ensureSupabaseReady();
+    if (!ready || !supabaseClient) return;
+
+    AssistantDiagnosticsState.errorCooldown[signature] = Date.now();
+    const { error } = await supabaseClient
+        .from('assistant_events')
+        .insert([{
+            user_id: currentUser.id,
+            event_type: 'error',
+            action: String(meta.category || 'runtime').trim() || 'runtime',
+            route,
+            message: normalizedMessage,
+            created_at: new Date().toISOString()
+        }]);
+
+    if (error) {
+        console.warn('Assistant error log warning:', error);
+        return;
+    }
+
+    AssistantState.lastContextLoadAt = 0;
+}
+
+async function showAssistant() {
+    if (!currentUser) {
+        showLanding();
+        return;
+    }
+    hideAllPages();
+    document.getElementById('assistantPage')?.classList.remove('hidden');
+    await ensureAssistantWorkspaceLoaded();
+    document.getElementById('assistantInput')?.focus();
+    recordAssistantExperience('page_open', { route: 'assistant', action: 'assistant' });
+}
+
+async function sendAssistantMessage(text) {
+    const value = String(text || document.getElementById('assistantInput')?.value || '').trim();
+    if (!value || AssistantState.pending) return;
+
+    if (!AI_TEACHER_API_URL) {
+        try {
+            await appInitPromise;
+            AI_TEACHER_API_URL = window.AI_TEACHER_API_URL || AI_TEACHER_API_URL;
+        } catch {}
+    }
+    if (!AI_TEACHER_API_URL) {
+        showToast('AI API URL is not configured', 'error');
+        return;
+    }
+
+    const input = document.getElementById('assistantInput');
+    if (input) input.value = '';
+
+    if (!AssistantState.currentSessionId) {
+        const session = await createAssistantSession(buildAssistantSessionTitle(value));
+        AssistantState.currentSessionId = session.id;
+    }
+
+    const hasRealMessages = AssistantState.history.some(item => !item.ephemeral);
+    if (!hasRealMessages) {
+        await updateAssistantSessionSnapshot(AssistantState.currentSessionId, {
+            title: buildAssistantSessionTitle(value)
+        });
+    }
+
+    const userEntry = { role: 'user', content: value };
+    AssistantState.history = AssistantState.history.filter(item => !item.ephemeral || item.content);
+    AssistantState.history.push(userEntry);
+    await persistAssistantMessage(AssistantState.currentSessionId, userEntry);
+    await updateAssistantSessionSnapshot(AssistantState.currentSessionId, {
+        preview: value
+    });
+
+    renderAssistantMessages();
+    renderAssistantSessions();
+    setAssistantPending(true);
+
+    try {
+        await loadAssistantContextSnapshot(true);
+        const persistedSessionId = isAssistantPersistentSessionId(AssistantState.currentSessionId)
+            ? AssistantState.currentSessionId
+            : null;
+        const response = await AITeacherAPI.assistantChat({
+            user_id: currentUser?.id || 'guest',
+            message: value,
+            history: getAssistantModelHistory(),
+            language: currentLang,
+            user_profile: buildAssistantUserProfile(),
+            page_context: buildAssistantPageContext(),
+            user_diagnostics: buildAssistantDiagnosticsPayload(),
+            knowledge_sources: AssistantState.knowledgeSources,
+            session_id: persistedSessionId,
+            _access_token: await getAuthToken(),
+            material_id: AITeacher.materialId || null
+        });
+
+        const assistantEntry = {
+            role: 'assistant',
+            title: response.title || '',
+            content: response.message || '',
+            actions: response.actions || [],
+            citations: response.citations || []
+        };
+        if (response.session?.id) {
+            const previousSessionId = AssistantState.currentSessionId;
+            if (String(previousSessionId).startsWith('local-')) {
+                AssistantState.sessions = AssistantState.sessions.filter(item => item.id !== previousSessionId);
+            }
+            AssistantState.currentSessionId = response.session.id;
+            upsertAssistantSession({
+                id: response.session.id,
+                title: response.session.title || buildAssistantSessionTitle(value),
+                preview: response.session.preview || response.message || value,
+                created_at: response.session.created_at || new Date().toISOString(),
+                updated_at: response.session.updated_at || response.session.last_message_at || new Date().toISOString()
+            });
+            await loadAssistantSessions(true);
+            await switchAssistantSession(response.session.id);
+        } else {
+            AssistantState.history.push(assistantEntry);
+            await persistAssistantMessage(AssistantState.currentSessionId, assistantEntry);
+            await updateAssistantSessionSnapshot(AssistantState.currentSessionId, {
+                preview: response.message || value
+            });
+            renderAssistantSessions();
+        }
+        AssistantState.suggestions = Array.isArray(response.suggested_prompts) && response.suggested_prompts.length
+            ? response.suggested_prompts
+            : getAssistantDefaultPrompts();
+        if (response.summary && typeof response.summary === 'object') {
+            AssistantState.contextSummary = {
+                ...(AssistantState.contextSummary || {}),
+                weakTopics: Array.isArray(response.summary.weak_topics) ? response.summary.weak_topics : [],
+                recentErrors: Array.isArray(response.summary.recent_errors) ? response.summary.recent_errors : (AssistantState.contextSummary?.recentErrors || []),
+                materialSourcesBackend: Array.isArray(response.summary.material_sources)
+                    ? response.summary.material_sources
+                        .map(item => normalizeAssistantKnowledgeSource({
+                            source_type: item.source_type || 'material',
+                            source_id: item.id || item.source_id,
+                            title: item.title,
+                            subject: item.subject,
+                            text: item.material_text || item.excerpt || '',
+                            updated_at: item.updated_at
+                        }))
+                        .filter(Boolean)
+                    : [],
+                topActions: Array.isArray(response.summary.top_actions) ? response.summary.top_actions : []
+            };
+        }
+        renderAssistantSuggestions();
+        recordAssistantExperience('assistant_reply', { action: response.intent || 'answer', route: getCurrentVisiblePageName() });
+    } catch (error) {
+        const errorMessage = String(error?.message || 'Assistant request failed');
+        await logAssistantErrorToSupabase(errorMessage, { category: 'assistant_chat' });
+        const errorEntry = {
+            role: 'assistant',
+            content: errorMessage
+        };
+        AssistantState.history.push(errorEntry);
+        await persistAssistantMessage(AssistantState.currentSessionId, errorEntry);
+        await updateAssistantSessionSnapshot(AssistantState.currentSessionId, {
+            preview: errorMessage
+        });
+    } finally {
+        setAssistantPending(false);
+        renderAssistantSessions();
+        renderAssistantInsights();
+    }
+}
+
+function executeAssistantAction(action) {
+    if (!action || typeof action !== 'object') return;
+    recordAssistantExperience('assistant_action', {
+        action: action.type || 'unknown',
+        route: action.route || '',
+        source_id: action.source_id || '',
+        source_type: action.source_type || ''
+    });
+
+    if (action.type === 'prompt' && action.prompt) {
+        sendAssistantMessage(action.prompt);
+        return;
+    }
+
+    if (action.type === 'navigate') {
+        const routeHandlers = {
+            home: () => showHome(),
+            library: () => showLibrary(),
+            upload: () => {
+                showHome();
+                setTimeout(() => showUploadModal(), 60);
+            },
+            favorites: () => showFavorites(),
+            guess_game: () => showGuessGame(),
+            ai_learn: () => showLearnMode(),
+            ai_practice: () => showPracticeMode(),
+            ai_realtest: () => showRealTestMode(),
+            assistant: () => showAssistant(),
+            profile: () => showProfile(),
+            classmates: () => showClassmates()
+        };
+        const handler = routeHandlers[action.route];
+        if (handler) handler();
+        return;
+    }
+
+    if (action.type === 'start_quiz') {
+        startAssistantQuiz(action);
+    }
+}
+
+async function startAssistantQuiz(action) {
+    if (!canUseAIOrWarn()) return;
+    showAILoading();
+    setAssistantPending(true);
+    try {
+        const persistedSessionId = isAssistantPersistentSessionId(AssistantState.currentSessionId)
+            ? AssistantState.currentSessionId
+            : null;
+        const source = findAssistantKnowledgeSource(action.source_type, action.source_id);
+        const result = await AITeacherAPI.assistantQuiz({
+            user_id: currentUser?.id || 'guest',
+            _access_token: await getAuthToken(),
+            session_id: persistedSessionId,
+            source_type: action.source_type || 'historical_figure',
+            source_id: action.source_id,
+            source_title: source?.title || '',
+            material_text: source?.text || '',
+            mode: action.mode || 'practice',
+            count: action.count || 10,
+            language: currentLang
+        });
+
+        recordAIUsage();
+        AITeacher.currentMode = 'assistant';
+        AITeacher.materialId = null;
+        AITeacher.flashcardsData = [];
+        AITeacher.previousQuestions = [];
+        AITeacher.questionsData = result.questions || [];
+        AITeacher.mathMode = detectMathInValue(AITeacher.questionsData);
+        AITeacher.sourceMeta = {
+            origin: 'assistant',
+            sourceType: result.source?.type || action.source_type || 'historical_figure',
+            sourceId: result.source?.id || action.source_id || '',
+            title: result.source?.title || ''
+        };
+
+        if (!Array.isArray(AITeacher.questionsData) || AITeacher.questionsData.length === 0) {
+            throw new Error('Assistant quiz returned no questions');
+        }
+
+        hideAILoading();
+        startAITest((action.mode || 'practice') === 'realtest');
+    } catch (error) {
+        hideAILoading();
+        await logAssistantErrorToSupabase(String(error?.message || 'Assistant quiz failed'), { category: 'assistant_quiz' });
+        showToast(String(error?.message || 'Assistant quiz failed'), 'error');
+    } finally {
+        setAssistantPending(false);
+    }
+}
+
+function backToAssistantFromQuiz() {
+    showAssistant();
+}
+
+function recordAssistantExperience(eventType, payload = {}) {
+    if (!AI_TEACHER_API_URL || !currentUser?.id) return;
+    getAuthToken().then(token => {
+        const persistedSessionId = isAssistantPersistentSessionId(AssistantState.currentSessionId)
+            ? AssistantState.currentSessionId
+            : null;
+        AITeacherAPI.recordAssistantExperience({
+            user_id: currentUser.id,
+            _access_token: token,
+            session_id: persistedSessionId,
+            event_type: eventType,
+            payload
+        }).catch(() => {});
+    }).catch(() => {});
+}
+
 // ==================== QUICK ACTION BUTTONS ====================
 function showLearnMode() {
-    
+    recordAssistantExperience('page_open', { route: 'ai_learn', action: 'ai_learn' });
     openAITeacherModal('learn');
 }
 
 function showPracticeMode() {
-    
+    recordAssistantExperience('page_open', { route: 'ai_practice', action: 'ai_practice' });
     openAITeacherModal('practice');
 }
 
 function showRealTestMode() {
-    
+    recordAssistantExperience('page_open', { route: 'ai_realtest', action: 'ai_realtest' });
     openAITeacherModal('realtest');
 }
 
@@ -8751,9 +10020,11 @@ const AITeacher = {
     currentMode: null,      
     mathMode: false,
     materialId: null,
+    latestMaterialPreview: '',
     materialType: null,     
     selectedFile: null,
     historyMode: false,
+    sourceMeta: null,
     
     
     plan: [],
@@ -8921,6 +10192,45 @@ const AITeacherAPI = {
         }
     },
 
+    async assistantChat(payload) {
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(resolveAiApiEndpoint('assistant/chat'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload || {}),
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant chat error'
+        );
+    },
+
+    async assistantQuiz(payload) {
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(resolveAiApiEndpoint('assistant/quiz'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload || {}),
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant quiz error'
+        );
+    },
+
+    async recordAssistantExperience(payload) {
+        return await fetchJsonWithControl(resolveAiApiEndpoint('assistant/experience'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload || {}),
+            timeoutMs: 5000,
+            credentials: 'omit',
+            cache: 'no-store'
+        });
+    },
+
     async healthCheck() {
         try {
             await fetchJsonWithControl(resolveAiApiEndpoint('health'), {
@@ -8952,6 +10262,7 @@ async function openAITeacherModal(mode) {
         return;
     }
     AITeacher.currentMode = mode;
+    AITeacher.sourceMeta = null;
     updateAIUsageUI();
     openModal('aiTeacherMaterialModal');
 }
@@ -9053,6 +10364,7 @@ async function uploadAndProcessAIMaterial(material) {
     try {
         const result = await AITeacherAPI.uploadMaterial(material);
         AITeacher.materialId = result.material_id;
+        AITeacher.latestMaterialPreview = result.preview || '';
         
         hideAILoading();
         setAITeacherInFlight(false);
@@ -9817,6 +11129,19 @@ function showAIResults() {
     
     const total = AITeacher.questionsData.length;
     const percent = Math.round((correct / total) * 100);
+    const assistantOrigin = AITeacher.sourceMeta?.origin === 'assistant';
+
+    if (assistantOrigin) {
+        recordAssistantExperience('quiz_result', {
+            action: 'assistant_quiz_result',
+            topic: AITeacher.sourceMeta?.title || '',
+            source_type: AITeacher.sourceMeta?.sourceType || '',
+            source_id: AITeacher.sourceMeta?.sourceId || '',
+            correct,
+            total,
+            percent
+        });
+    }
     
     document.getElementById('aiScoreNumber').textContent = `${correct}/${total}`;
     document.getElementById('aiScorePercent').textContent = `${percent}%`;
@@ -9854,11 +11179,19 @@ function showAIResults() {
         if (breakdown) breakdown.style.display = 'none';
         
         if (actions) {
-            actions.innerHTML = `
-                <button class="btn btn-primary" onclick="repeatAITest()">🔄 ${t('repeat') || 'Қайталау'}</button>
-                <button class="btn btn-secondary" onclick="continueWithOtherAI()">➡️ ${t('continueOther') || 'Басқа сұрақтармен жалғастыру'}</button>
-                <button class="btn btn-outline" onclick="exitAITeacher()">🚪 ${t('exit') || 'Шығу'}</button>
-            `;
+            if (assistantOrigin) {
+                actions.innerHTML = `
+                    <button class="btn btn-primary" onclick="repeatAITest()">🔄 ${t('repeat') || 'Қайталау'}</button>
+                    <button class="btn btn-secondary" onclick="backToAssistantFromQuiz()">🤖 ${t('assistantBack') || 'Back to assistant'}</button>
+                    <button class="btn btn-outline" onclick="exitAITeacher()">🚪 ${t('exit') || 'Шығу'}</button>
+                `;
+            } else {
+                actions.innerHTML = `
+                    <button class="btn btn-primary" onclick="repeatAITest()">🔄 ${t('repeat') || 'Қайталау'}</button>
+                    <button class="btn btn-secondary" onclick="continueWithOtherAI()">➡️ ${t('continueOther') || 'Басқа сұрақтармен жалғастыру'}</button>
+                    <button class="btn btn-outline" onclick="exitAITeacher()">🚪 ${t('exit') || 'Шығу'}</button>
+                `;
+            }
         }
     }
     

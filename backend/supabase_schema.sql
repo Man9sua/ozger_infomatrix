@@ -250,6 +250,118 @@ create trigger on_test_favorite_change
   after insert or delete on public.user_favorites
   for each row execute function public.update_test_favorite_count();
 
+-- ==================== ASSISTANT SESSIONS ====================
+create table if not exists public.assistant_sessions (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    title varchar(160) not null default 'New chat',
+    last_message_preview text default '',
+    last_intent varchar(60),
+    last_route varchar(60),
+    created_at timestamptz default now(),
+    updated_at timestamptz default now(),
+    last_message_at timestamptz default now()
+);
+
+create index if not exists idx_assistant_sessions_user_id on public.assistant_sessions(user_id);
+create index if not exists idx_assistant_sessions_last_message_at on public.assistant_sessions(last_message_at desc);
+
+alter table public.assistant_sessions enable row level security;
+
+drop policy if exists "Users can view their own assistant sessions" on public.assistant_sessions;
+create policy "Users can view their own assistant sessions"
+  on public.assistant_sessions for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant sessions" on public.assistant_sessions;
+create policy "Users can insert their own assistant sessions"
+  on public.assistant_sessions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own assistant sessions" on public.assistant_sessions;
+create policy "Users can update their own assistant sessions"
+  on public.assistant_sessions for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant sessions" on public.assistant_sessions;
+create policy "Users can delete their own assistant sessions"
+  on public.assistant_sessions for delete
+  using (auth.uid() = user_id);
+
+-- ==================== ASSISTANT MESSAGES ====================
+create table if not exists public.assistant_messages (
+    id uuid primary key default gen_random_uuid(),
+    session_id uuid references public.assistant_sessions(id) on delete cascade not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
+    role varchar(20) not null,
+    title varchar(200),
+    content text not null,
+    intent varchar(60),
+    actions jsonb not null default '[]'::jsonb,
+    citations jsonb not null default '[]'::jsonb,
+    created_at timestamptz default now()
+);
+
+create index if not exists idx_assistant_messages_session_id on public.assistant_messages(session_id);
+create index if not exists idx_assistant_messages_user_id on public.assistant_messages(user_id);
+create index if not exists idx_assistant_messages_created_at on public.assistant_messages(created_at asc);
+
+alter table public.assistant_messages enable row level security;
+
+drop policy if exists "Users can view their own assistant messages" on public.assistant_messages;
+create policy "Users can view their own assistant messages"
+  on public.assistant_messages for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant messages" on public.assistant_messages;
+create policy "Users can insert their own assistant messages"
+  on public.assistant_messages for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant messages" on public.assistant_messages;
+create policy "Users can delete their own assistant messages"
+  on public.assistant_messages for delete
+  using (auth.uid() = user_id);
+
+-- ==================== ASSISTANT EVENTS ====================
+create table if not exists public.assistant_events (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    session_id uuid references public.assistant_sessions(id) on delete set null,
+    event_type varchar(60) not null,
+    action varchar(80),
+    route varchar(80),
+    topic varchar(200),
+    source_type varchar(80),
+    source_id varchar(200),
+    correct integer,
+    total integer,
+    percent integer,
+    message text,
+    created_at timestamptz default now()
+);
+
+create index if not exists idx_assistant_events_user_id on public.assistant_events(user_id);
+create index if not exists idx_assistant_events_session_id on public.assistant_events(session_id);
+create index if not exists idx_assistant_events_created_at on public.assistant_events(created_at desc);
+
+alter table public.assistant_events enable row level security;
+
+drop policy if exists "Users can view their own assistant events" on public.assistant_events;
+create policy "Users can view their own assistant events"
+  on public.assistant_events for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant events" on public.assistant_events;
+create policy "Users can insert their own assistant events"
+  on public.assistant_events for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant events" on public.assistant_events;
+create policy "Users can delete their own assistant events"
+  on public.assistant_events for delete
+  using (auth.uid() = user_id);
+
 -- ==================== updated_at helper ====================
 create or replace function public.update_updated_at_column()
 returns trigger
@@ -279,6 +391,11 @@ create trigger update_materials_updated_at
 drop trigger if exists update_tests_updated_at on public.tests;
 create trigger update_tests_updated_at
   before update on public.tests
+  for each row execute function public.update_updated_at_column();
+
+drop trigger if exists update_assistant_sessions_updated_at on public.assistant_sessions;
+create trigger update_assistant_sessions_updated_at
+  before update on public.assistant_sessions
   for each row execute function public.update_updated_at_column();
 
 -- ==================== Auto-create defaults on signup ====================

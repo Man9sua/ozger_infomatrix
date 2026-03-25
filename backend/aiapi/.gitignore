@@ -3,3 +3,4 @@ vemv/
 __pycache__/
 .env
 .python-version
+.assistant_store/

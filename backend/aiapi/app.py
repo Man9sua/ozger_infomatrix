@@ -12,10 +12,13 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from services.assistant_service import get_assistant_service
 from services.gemini_service import get_gemini_service
 from services.pdf_service import extract_text_from_pdf
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR.parent / ".env")
 
 app = Flask(__name__)
 CORS(app)
@@ -50,6 +53,20 @@ def parse_request_data() -> dict:
         for k, v in request.args.items():
             data.setdefault(k, v)
 
+    return data
+
+
+def extract_bearer_token() -> str:
+    auth_header = str(request.headers.get("Authorization") or "").strip()
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:].strip()
+    return ""
+
+
+def with_auth_context(data: dict) -> dict:
+    token = extract_bearer_token()
+    if token:
+        data["_access_token"] = token
     return data
 
 
@@ -223,6 +240,72 @@ def generate_continue():
             gemini.generate_practice_questions(material, count, previous_questions, lang)
         )
         return jsonify(result)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/chat", methods=["POST"])
+def assistant_chat():
+    try:
+        data = with_auth_context(parse_request_data())
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.chat(data)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/quiz", methods=["POST"])
+def assistant_quiz():
+    try:
+        data = with_auth_context(parse_request_data())
+        assistant = get_assistant_service(resolve_material)
+        result = run_async(assistant.generate_quiz(data))
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/experience", methods=["POST"])
+def assistant_experience():
+    try:
+        data = with_auth_context(parse_request_data())
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.record_experience(data)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/sessions", methods=["GET"])
+def assistant_sessions():
+    try:
+        data = with_auth_context(parse_request_data())
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.list_sessions(data)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/sessions/<session_id>", methods=["GET"])
+def assistant_session_detail(session_id: str):
+    try:
+        data = with_auth_context(parse_request_data())
+        data["session_id"] = session_id
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.get_session(data)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
 

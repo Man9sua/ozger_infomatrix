@@ -194,11 +194,11 @@
                     <span class="menu-text" data-i18n="profile">Профиль</span>
                     <div class="menu-arrow">›</div>
                 </div>
-                <div class="menu-item" id="myMaterialsBtn">
+                <div class="menu-item" id="assistantMenuBtn">
                     <div class="menu-icon menu-icon-svg">
-                        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v1h2a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3.76l-3.7 3.08A1 1 0 0 1 8 19.31V17H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h2V5a3 3 0 0 1 3-3zm-1 4h2V5a1 1 0 0 0-2 0v1zm-1 5a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2h-4zm-2-3a1 1 0 0 0 0 2h8a1 1 0 1 0 0-2H8z"/></svg>
                     </div>
-                    <span class="menu-text" data-i18n="myMaterials">Менің материалдарым</span>
+                    <span class="menu-text" data-i18n="assistantMenu">AI навигатор</span>
                     <div class="menu-arrow">›</div>
                 </div>
                 <div class="menu-item" id="favoritesMenuBtn">
@@ -297,36 +297,52 @@
                 </div>
             </section>
 
-            
-            <section class="home-section ent-section ent-disabled">
-                <div class="ent-development-banner">
-                    <span data-i18n="inDevelopment">Я хз будет ли</span>
-                </div>
-                <h2 class="section-title">🎯 ЕНТ</h2>
-                <div class="ent-grid">
-                    <div class="ent-card">
-                        <div class="ent-icon ent-icon-svg">
-                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            <section class="home-section assistant-entry-section">
+                <div class="assistant-entry-window" onclick="showAssistant()">
+                    <div class="assistant-entry-copy">
+                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Control Center</span>
+                        <h2 class="section-title assistant-entry-title" data-i18n="assistantLaunchTitle">AI ассистент енді сайттың негізгі басқару орталығы</h2>
+                        <p class="assistant-entry-text" data-i18n="assistantLaunchDesc">Бөлімдерді ашады, профильге сүйеніп кеңес береді, соңғы қателерді ескереді және материалдарыңыз бойынша жауап береді.</p>
+                        <div class="assistant-entry-tags">
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag1">Сайтты басқару</span>
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag2">Жеке сессиялар</span>
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag3">Материалдар retrieval</span>
                         </div>
-                        <span data-i18n="historyKZ">Қазақстан тарихы</span>
+                        <button class="btn btn-primary assistant-entry-btn" type="button" data-i18n="assistantOpenChat">Чатты ашу</button>
                     </div>
-                    <div class="ent-card">
-                        <div class="ent-icon ent-icon-svg">
-                            <svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+                    <div class="assistant-entry-preview">
+                        <div class="assistant-entry-preview-window">
+                            <div class="assistant-entry-preview-header">
+                                <span class="assistant-entry-preview-dot"></span>
+                                <span class="assistant-entry-preview-dot"></span>
+                                <span class="assistant-entry-preview-dot"></span>
+                            </div>
+                            <div class="assistant-entry-preview-body">
+                                <div class="assistant-entry-preview-card">
+                                    <span class="assistant-entry-preview-label" data-i18n="assistantProfileContext">Профиль контексті</span>
+                                    <strong>AI + Supabase</strong>
+                                    <p data-i18n="assistantSubtitle">Сайтты табуға, әлсіз тақырыптарды көруге және тест бастауға көмектеседі</p>
+                                </div>
+                                <div class="assistant-entry-preview-grid">
+                                    <div class="assistant-entry-mini-card">
+                                        <span class="assistant-entry-mini-icon">🧭</span>
+                                        <span data-i18n="assistantQuickAccess">Жылдам басқару</span>
+                                    </div>
+                                    <div class="assistant-entry-mini-card">
+                                        <span class="assistant-entry-mini-icon">🧠</span>
+                                        <span data-i18n="assistantKnowledgeContext">Қолдағы дереккөздер</span>
+                                    </div>
+                                    <div class="assistant-entry-mini-card">
+                                        <span class="assistant-entry-mini-icon">🕘</span>
+                                        <span data-i18n="assistantSessionHistory">Сессия тарихы</span>
+                                    </div>
+                                    <div class="assistant-entry-mini-card">
+                                        <span class="assistant-entry-mini-icon">⚠</span>
+                                        <span data-i18n="assistantErrorsContext">Соңғы қателер</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <span data-i18n="readingLit">Оқу сауаттылығы</span>
-                    </div>
-                    <div class="ent-card">
-                        <div class="ent-icon ent-icon-svg">
-                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4H8v-2h4V7h2v4h4v2h-4v4z"/></svg>
-                        </div>
-                        <span data-i18n="mathLit">Мат. сауаттылық</span>
-                    </div>
-                    <div class="ent-card ent-card-full">
-                        <div class="ent-icon ent-icon-svg">
-                            <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
-                        </div>
-                        <span data-i18n="mockENT">Пробный ЕНТ</span>
                     </div>
                 </div>
             </section>
@@ -738,6 +754,98 @@
                     <button class="btn btn-ghost" onclick="forceExitTest()" data-i18n="exit">Шығу</button>
                 </div>
             </div>
+        </div>
+    </main>
+
+    <!-- ==================== ASSISTANT PAGE ==================== -->
+    <main class="page-content hidden" id="assistantPage">
+        <div class="assistant-shell">
+            <aside class="assistant-sidebar">
+                <div class="assistant-sidebar-top">
+                    <button class="back-btn" onclick="showHome()">←</button>
+                    <div class="assistant-sidebar-title-group">
+                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Control Center</span>
+                        <h1 class="page-title" data-i18n="assistantTitle">AI ассистент</h1>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary assistant-new-session-btn" id="assistantNewSessionBtn" data-i18n="assistantNewChat">Жаңа сессия</button>
+
+                <div class="assistant-sidebar-section">
+                    <div class="assistant-panel-label" data-i18n="assistantSessionHistory">Сессия тарихы</div>
+                    <div class="assistant-session-list" id="assistantSessionList"></div>
+                </div>
+            </aside>
+
+            <section class="assistant-main-column">
+                <div class="assistant-page-header">
+                    <div>
+                        <div class="assistant-session-meta" id="assistantSessionMeta">AI workspace</div>
+                        <h1 class="page-title" data-i18n="assistantTitle">AI ассистент</h1>
+                        <p class="assistant-subtitle" data-i18n="assistantSubtitle">Сайтты табуға, әлсіз тақырыптарды көруге және тест бастауға көмектеседі</p>
+                    </div>
+                </div>
+
+                <div class="assistant-control-grid">
+                    <button class="assistant-control-btn" type="button" onclick="showLibrary()">
+                        <span class="assistant-control-icon">📚</span>
+                        <span data-i18n="assistantQuickLibrary">Кітапхана</span>
+                    </button>
+                    <button class="assistant-control-btn" type="button" onclick="showUploadModal()">
+                        <span class="assistant-control-icon">⬆</span>
+                        <span data-i18n="assistantQuickUpload">Жүктеу</span>
+                    </button>
+                    <button class="assistant-control-btn" type="button" onclick="showPracticeMode()">
+                        <span class="assistant-control-icon">✍</span>
+                        <span data-i18n="assistantQuickPractice">Жаттығу</span>
+                    </button>
+                    <button class="assistant-control-btn" type="button" onclick="showRealTestMode()">
+                        <span class="assistant-control-icon">🎯</span>
+                        <span data-i18n="assistantQuickRealtest">Real Test</span>
+                    </button>
+                    <button class="assistant-control-btn" type="button" onclick="showFavorites()">
+                        <span class="assistant-control-icon">★</span>
+                        <span data-i18n="assistantQuickFavorites">Таңдаулылар</span>
+                    </button>
+                    <button class="assistant-control-btn" type="button" onclick="showProfile()">
+                        <span class="assistant-control-icon">👤</span>
+                        <span data-i18n="assistantQuickProfile">Профиль</span>
+                    </button>
+                </div>
+
+                <div class="assistant-panel">
+                    <div class="assistant-messages" id="assistantMessages"></div>
+                    <div class="assistant-suggestions" id="assistantSuggestions"></div>
+                    <div class="assistant-composer">
+                        <textarea
+                            id="assistantInput"
+                            class="assistant-input"
+                            rows="3"
+                            placeholder="Сұрағыңызды жазыңыз..."
+                            data-i18n-placeholder="assistantPlaceholder"></textarea>
+                        <button class="btn btn-primary assistant-send-btn" id="assistantSendBtn" data-i18n="assistantSend">Жіберу</button>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="assistant-insights">
+                <div class="assistant-context-card">
+                    <div class="assistant-panel-label" data-i18n="assistantProfileContext">Профиль контексті</div>
+                    <div class="assistant-context-list" id="assistantProfileSummary"></div>
+                </div>
+                <div class="assistant-context-card">
+                    <div class="assistant-panel-label" data-i18n="assistantFocusContext">Фокус және әлсіз тұстар</div>
+                    <div class="assistant-context-list" id="assistantFocusSummary"></div>
+                </div>
+                <div class="assistant-context-card">
+                    <div class="assistant-panel-label" data-i18n="assistantErrorsContext">Соңғы қателер</div>
+                    <div class="assistant-context-list" id="assistantErrorSummary"></div>
+                </div>
+                <div class="assistant-context-card">
+                    <div class="assistant-panel-label" data-i18n="assistantKnowledgeContext">Қолдағы дереккөздер</div>
+                    <div class="assistant-context-list" id="assistantSourceSummary"></div>
+                </div>
+            </aside>
         </div>
     </main>
 
