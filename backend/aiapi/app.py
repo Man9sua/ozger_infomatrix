@@ -20,7 +20,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Simple in-memory storage for uploaded materials.
+
 materials_store: dict[str, str] = {}
 MATERIALS_DIR = Path(os.getenv("AI_MATERIALS_DIR", "/tmp/ai_materials"))
 MATERIALS_DIR.mkdir(parents=True, exist_ok=True)
@@ -40,12 +40,12 @@ def parse_request_data() -> dict:
         except Exception:
             data = {}
 
-    # Merge form fields (do not override JSON keys)
+
     if request.form:
         for k, v in request.form.items():
             data.setdefault(k, v)
 
-    # Merge query params if still missing
+
     if request.args:
         for k, v in request.args.items():
             data.setdefault(k, v)
@@ -71,7 +71,7 @@ def resolve_material(data: dict) -> str:
     if material_id and material_id in materials_store:
         material = materials_store[material_id]
 
-    # Fallback: try load from disk if not in memory
+
     if material_id and not material:
         path = MATERIALS_DIR / f"{material_id}.txt"
         if path.exists():
