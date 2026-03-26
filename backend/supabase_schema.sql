@@ -378,6 +378,88 @@ create policy "Users can delete their own assistant events"
   on public.assistant_events for delete
   using (auth.uid() = user_id);
 
+-- ==================== ASSISTANT QUIZ ATTEMPTS ====================
+create table if not exists public.assistant_quiz_attempts (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    session_id uuid references public.assistant_sessions(id) on delete set null,
+    assistant_event_id uuid references public.assistant_events(id) on delete set null,
+    mode varchar(20) not null default 'practice',
+    route varchar(80),
+    topic varchar(200),
+    source_type varchar(80),
+    source_id varchar(200),
+    source_title varchar(200),
+    correct integer not null default 0,
+    total integer not null default 0,
+    percent integer,
+    language varchar(12),
+    page_context jsonb not null default '{}'::jsonb,
+    metadata jsonb not null default '{}'::jsonb,
+    created_at timestamptz default now()
+);
+
+create index if not exists idx_assistant_quiz_attempts_user_id on public.assistant_quiz_attempts(user_id);
+create index if not exists idx_assistant_quiz_attempts_session_id on public.assistant_quiz_attempts(session_id);
+create index if not exists idx_assistant_quiz_attempts_created_at on public.assistant_quiz_attempts(created_at desc);
+create index if not exists idx_assistant_quiz_attempts_mode on public.assistant_quiz_attempts(mode);
+
+alter table public.assistant_quiz_attempts enable row level security;
+
+drop policy if exists "Users can view their own assistant quiz attempts" on public.assistant_quiz_attempts;
+create policy "Users can view their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant quiz attempts" on public.assistant_quiz_attempts;
+create policy "Users can insert their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant quiz attempts" on public.assistant_quiz_attempts;
+create policy "Users can delete their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for delete
+  using (auth.uid() = user_id);
+
+create table if not exists public.assistant_quiz_attempt_items (
+    id uuid primary key default gen_random_uuid(),
+    attempt_id uuid references public.assistant_quiz_attempts(id) on delete cascade not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
+    question_index integer not null,
+    question_id varchar(120),
+    question_text text not null,
+    selected_answer text,
+    correct_answer text,
+    is_correct boolean not null default false,
+    explanation text,
+    topic_hint varchar(200),
+    source_question jsonb not null default '{}'::jsonb,
+    created_at timestamptz default now(),
+    unique(attempt_id, question_index)
+);
+
+create index if not exists idx_assistant_quiz_attempt_items_attempt_id on public.assistant_quiz_attempt_items(attempt_id);
+create index if not exists idx_assistant_quiz_attempt_items_user_id on public.assistant_quiz_attempt_items(user_id);
+create index if not exists idx_assistant_quiz_attempt_items_created_at on public.assistant_quiz_attempt_items(created_at desc);
+create index if not exists idx_assistant_quiz_attempt_items_is_correct on public.assistant_quiz_attempt_items(is_correct);
+
+alter table public.assistant_quiz_attempt_items enable row level security;
+
+drop policy if exists "Users can view their own assistant quiz attempt items" on public.assistant_quiz_attempt_items;
+create policy "Users can view their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own assistant quiz attempt items" on public.assistant_quiz_attempt_items;
+create policy "Users can insert their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own assistant quiz attempt items" on public.assistant_quiz_attempt_items;
+create policy "Users can delete their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for delete
+  using (auth.uid() = user_id);
+
 -- ==================== ASSISTANT MEMORY EXTENSIONS ====================
 -- Session lifecycle and quality fields.
 alter table public.assistant_sessions add column if not exists status varchar(20) not null default 'active';

@@ -73,6 +73,10 @@ class OpenAIService:
             model_name = str(item or "").strip()
             if model_name and model_name != self.model and model_name not in self.fallback_models:
                 self.fallback_models.append(model_name)
+        self.fast_model = os.getenv(
+            "OPENAI_FAST_MODEL",
+            self.fallback_models[0] if self.fallback_models else self.model,
+        ).strip() or self.model
         self.last_model_used = self.model
         
         # Base system prompt for ENT preparation

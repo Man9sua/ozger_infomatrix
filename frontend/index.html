@@ -301,13 +301,13 @@
             <section class="home-section assistant-entry-section">
                 <div class="assistant-entry-window" onclick="showAssistant()">
                     <div class="assistant-entry-copy">
-                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Control Center</span>
-                        <h2 class="section-title assistant-entry-title" data-i18n="assistantLaunchTitle">AI ассистент енді сайттың негізгі басқару орталығы</h2>
-                        <p class="assistant-entry-text" data-i18n="assistantLaunchDesc">Бөлімдерді ашады, профильге сүйеніп кеңес береді, соңғы қателерді ескереді және материалдарыңыз бойынша жауап береді.</p>
+                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Assistant</span>
+                        <h2 class="section-title assistant-entry-title" data-i18n="assistantLaunchTitle">AI ассистент оқу, материалдар және тесттер бойынша толық көмекшіге айналды</h2>
+                        <p class="assistant-entry-text" data-i18n="assistantLaunchDesc">Материалдарыңыздан жауап береді, соңғы тесттерді талдайды, келесі қадамды ұсынады және Practice не Real Test-ті бірден бастайды.</p>
                         <div class="assistant-entry-tags">
-                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag1">Сайтты басқару</span>
-                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag2">Жеке сессиялар</span>
-                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag3">Материалдар retrieval</span>
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag1">Оқу жоспары</span>
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag2">Материалдар мен тесттер</span>
+                            <span class="assistant-entry-tag" data-i18n="assistantLaunchTag3">Жылдам командалар</span>
                         </div>
                         <button class="btn btn-primary assistant-entry-btn" type="button" data-i18n="assistantOpenChat">Чатты ашу</button>
                     </div>
@@ -321,7 +321,7 @@
                             <div class="assistant-entry-preview-body">
                                 <div class="assistant-entry-preview-card">
                                     <span class="assistant-entry-preview-label" data-i18n="assistantProfileContext">Профиль контексті</span>
-                                    <strong>AI + Supabase</strong>
+                                    <strong>AI Assistant</strong>
                                     <p data-i18n="assistantSubtitle">Сайтты табуға, әлсіз тақырыптарды көруге және тест бастауға көмектеседі</p>
                                 </div>
                                 <div class="assistant-entry-preview-grid">
@@ -765,8 +765,7 @@
                 <div class="assistant-sidebar-top">
                     <button class="back-btn" onclick="showHome()">←</button>
                     <div class="assistant-sidebar-title-group">
-                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Control Center</span>
-                        <h1 class="page-title" data-i18n="assistantTitle">AI ассистент</h1>
+                        <span class="assistant-entry-badge" data-i18n="assistantControlBadge">AI Assistant</span>
                     </div>
                 </div>
 
@@ -800,8 +799,8 @@
                 <div class="assistant-page-header">
                     <div>
                         <div class="assistant-session-meta" id="assistantSessionMeta">AI workspace</div>
-                        <h1 class="page-title" data-i18n="assistantTitle">AI ассистент</h1>
-                        <p class="assistant-subtitle" data-i18n="assistantSubtitle">Сайтты табуға, әлсіз тақырыптарды көруге және тест бастауға көмектеседі</p>
+                        <p class="assistant-subtitle" data-i18n="assistantSubtitle">Материалдарыңыздан жауап береді, соңғы тесттерді талдайды, әлсіз тақырыптарды табады және бірден оқу не тест қадамын ұсынады</p>
+                        <div class="assistant-command-bar" id="assistantSuggestions"></div>
                     </div>
                 </div>
 

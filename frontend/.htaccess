@@ -4,15 +4,10 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 <IfModule mod_headers.c>
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-
     Header always set X-Frame-Options "DENY"
-
     Header always set X-XSS-Protection "1; mode=block"
-
     Header always set X-Content-Type-Options "nosniff"
-
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.socket.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: http: wss: ws: https://wuaciyhbdwzesnzinbux.supabase.co http://localhost:5000 http://127.0.0.1:5000 http://localhost:3001 http://127.0.0.1:3001; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 
     <FilesMatch "\.(html|json)$">

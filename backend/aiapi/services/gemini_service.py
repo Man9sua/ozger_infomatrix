@@ -12,7 +12,7 @@ import math
 import hashlib
 import threading
 from collections import OrderedDict
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 
 class GeminiService:
@@ -44,6 +44,24 @@ class GeminiService:
             "GEMINI_LEARN_MAX_OUTPUT_TOKENS",
             default=max(self.default_max_output_tokens, 3500),
             min_value=512,
+            max_value=32768,
+        )
+        self.quiz_request_timeout_seconds = self._env_float(
+            "GEMINI_QUIZ_TIMEOUT_SECONDS",
+            default=20.0,
+            min_value=8.0,
+            max_value=90.0,
+        )
+        self.practice_quiz_max_output_tokens = self._env_int(
+            "GEMINI_PRACTICE_MAX_OUTPUT_TOKENS",
+            default=5200,
+            min_value=1024,
+            max_value=32768,
+        )
+        self.realtest_quiz_max_output_tokens = self._env_int(
+            "GEMINI_REALTEST_MAX_OUTPUT_TOKENS",
+            default=4200,
+            min_value=1024,
             max_value=32768,
         )
         self.learn_target_chars = self._env_int(
@@ -125,6 +143,14 @@ IMPORTANT RULES:
         """Parse bounded integer environment variable."""
         try:
             value = int(os.getenv(name, str(default)))
+        except Exception:
+            value = default
+        return max(min_value, min(max_value, value))
+
+    def _env_float(self, name: str, default: float, min_value: float, max_value: float) -> float:
+        """Parse bounded float environment variable."""
+        try:
+            value = float(os.getenv(name, str(default)))
         except Exception:
             value = default
         return max(min_value, min(max_value, value))
@@ -234,6 +260,8 @@ IMPORTANT RULES:
         raw = str(error or "").strip()
         text = raw.lower()
 
+        if "timeout" in text or "timed out" in text or "read operation timed out" in text:
+            return "AI provider timed out while generating the quiz. Please retry."
         if "backend write error" in text or "varnish" in text or "54113" in text:
             return "AI provider is temporarily unavailable (upstream 503). Please retry in 15-30 seconds."
         if "429" in text or "quota" in text or "resource_exhausted" in text:
@@ -264,6 +292,119 @@ IMPORTANT RULES:
         if lang == "en":
             return "Respond strictly in English."
         return "Тек қазақ тілінде жауап бер."
+
+    def _quiz_max_output_tokens(self, question_count: int, *, include_explanations: bool) -> int:
+        count = max(5, min(30, int(question_count or 10)))
+        if include_explanations:
+            target = 1100 + count * 210
+            return max(1600, min(self.practice_quiz_max_output_tokens, target))
+        target = 900 + count * 160
+        return max(1400, min(self.realtest_quiz_max_output_tokens, target))
+
+    def _assistant_context_block(self, assistant_context: Optional[dict[str, Any]]) -> str:
+        context = assistant_context if isinstance(assistant_context, dict) else {}
+        if not context:
+            return "No assistant personalization context provided."
+
+        parts: list[str] = []
+        source_title = str(context.get("source_title") or "").strip()
+        source_type = str(context.get("source_type") or "").strip()
+        if source_title:
+            parts.append(f"Source focus: {source_title}")
+        if source_type:
+            parts.append(f"Source type: {source_type}")
+
+        preferred_difficulty = str(context.get("preferred_difficulty") or "").strip()
+        if preferred_difficulty:
+            parts.append(f"Preferred difficulty: {preferred_difficulty}")
+        preferred_language = str(context.get("preferred_language") or "").strip()
+        if preferred_language:
+            parts.append(f"Required quiz language: {preferred_language}")
+        response_style = str(context.get("response_style") or "").strip()
+        if response_style:
+            parts.append(f"Preferred explanation style: {response_style}")
+
+        weak_topics = [str(item).strip() for item in (context.get("weak_topics") or []) if str(item).strip()]
+        learning_goals = [str(item).strip() for item in (context.get("learning_goals") or []) if str(item).strip()]
+        strong_topics = [str(item).strip() for item in (context.get("strong_topics") or []) if str(item).strip()]
+        if weak_topics:
+            parts.append("Prioritize weak topics: " + ", ".join(weak_topics[:4]))
+        if learning_goals:
+            parts.append("Student goals: " + ", ".join(learning_goals[:3]))
+        if strong_topics:
+            parts.append("Strong topics: " + ", ".join(strong_topics[:3]))
+
+        recent_errors = context.get("recent_errors") or []
+        if isinstance(recent_errors, list) and recent_errors:
+            compact_errors: list[str] = []
+            for item in recent_errors[:3]:
+                if not isinstance(item, dict):
+                    continue
+                topic = str(item.get("topic") or "").strip()
+                percent = item.get("percent")
+                if topic and percent is not None:
+                    compact_errors.append(f"{topic} ({percent}%)")
+                elif topic:
+                    compact_errors.append(topic)
+            if compact_errors:
+                parts.append("Recent problem areas: " + ", ".join(compact_errors))
+
+        facts = context.get("facts") or []
+        if isinstance(facts, list) and facts:
+            compact_facts: list[str] = []
+            for item in facts[:4]:
+                if not isinstance(item, dict):
+                    continue
+                fact_key = str(item.get("fact_key") or "").strip()
+                fact_value = str(item.get("fact_value") or "").strip()
+                if fact_key and fact_value:
+                    compact_facts.append(f"{fact_key}: {fact_value}")
+            if compact_facts:
+                parts.append("Known student facts: " + "; ".join(compact_facts))
+
+        recent_routes = [str(item).strip() for item in (context.get("recent_routes") or []) if str(item).strip()]
+        if recent_routes:
+            parts.append("Recent app routes: " + ", ".join(recent_routes[:4]))
+
+        quiz_performance = context.get("quiz_performance") if isinstance(context.get("quiz_performance"), dict) else {}
+        total_quizzes = int(quiz_performance.get("total_quizzes") or 0)
+        average_percent = quiz_performance.get("average_percent")
+        best_percent = quiz_performance.get("best_percent")
+        practice_count = int(quiz_performance.get("practice_count") or 0)
+        realtest_count = int(quiz_performance.get("realtest_count") or 0)
+        if total_quizzes > 0:
+            parts.append(
+                "Quiz track record: "
+                f"total={total_quizzes}, practice={practice_count}, realtest={realtest_count}, "
+                f"avg={average_percent or 0}%, best={best_percent or 0}%"
+            )
+        recent_results = quiz_performance.get("recent_results") or []
+        if isinstance(recent_results, list) and recent_results:
+            compact_results: list[str] = []
+            for item in recent_results[:3]:
+                if not isinstance(item, dict):
+                    continue
+                mode = str(item.get("mode") or "").strip()
+                topic = str(item.get("topic") or "").strip()
+                percent = item.get("percent")
+                if topic and percent is not None:
+                    compact_results.append(f"{topic} {percent}% ({mode or 'quiz'})")
+            if compact_results:
+                parts.append("Latest quiz results: " + "; ".join(compact_results))
+
+        page_context = context.get("page_context") if isinstance(context.get("page_context"), dict) else {}
+        current_route = str(page_context.get("route") or "").strip()
+        if current_route:
+            parts.append(f"Current route: {current_route}")
+        active_material_id = str(page_context.get("active_material_id") or page_context.get("material_id") or "").strip()
+        if active_material_id:
+            parts.append(f"Active material id: {active_material_id}")
+
+        session_summary = str(context.get("session_summary") or "").strip()
+        if session_summary:
+            parts.append("Assistant memory summary:\n" + session_summary[:600])
+
+        return "\n".join(parts) if parts else "No assistant personalization context provided."
 
     def _chunk_text(self, text: str, *, max_chars: int, overlap: int = 800) -> list[str]:
         """
@@ -632,7 +773,14 @@ JSON:"""
         except Exception as e:
             raise Exception(f"Gemini API қатесі: {str(e)}")
 
-    async def generate_practice_questions(self, material: str, count: int, exclude_questions: list = None, lang: Optional[str] = None) -> dict:
+    async def generate_practice_questions(
+        self,
+        material: str,
+        count: int,
+        exclude_questions: list = None,
+        lang: Optional[str] = None,
+        assistant_context: Optional[dict[str, Any]] = None,
+    ) -> dict:
         """
         Generate practice questions.
         
@@ -644,6 +792,7 @@ JSON:"""
         Returns:
             Dictionary with questions
         """
+        count = max(5, min(30, int(count or 10)))
         # For large PDFs/text: summarize instead of hard truncation
         material = self._prepare_large_material(material, target_chars=50000, lang=lang)
         lang_instruction = self._language_instruction(lang)
@@ -651,6 +800,8 @@ JSON:"""
         exclude_text = ""
         if exclude_questions:
             exclude_text = f"\n\nБҰЛ СҰРАҚТАРДЫ ҚАЙТАЛАМА:\n" + "\n".join(exclude_questions)
+
+        personalization_context = self._assistant_context_block(assistant_context)
 
         prompt = f"""{self.system_prompt}
 {lang_instruction}
@@ -675,7 +826,16 @@ JSON:"""
 - Қате жауаптар шатастыратын болсын (ЕНТ стилінде)
 - Қате жауаптардың ұзындығы дұрыс жауаппен шамалас болсын (өте қысқа немесе өте ұзын болмасын)
 - Әр сұраққа түсіндірме жаз
+- Every JSON field (`question`, `correct`, `wrong`, `explanation`) must be written only in the requested language
+- Never mix languages inside the quiz, even if the source material uses another language
+- PERSONALIZATION CONTEXT only changes focus, sequencing, and difficulty.
+- NEVER create questions about the student profile itself.
+- Use FACTUAL SOURCE MATERIAL as the only factual basis for answers.
+- If weak topics are listed, prioritize them in at least half of the questions when the material supports it.
 {exclude_text}
+
+ASSISTANT PERSONALIZATION CONTEXT:
+{personalization_context}
 
 МАТЕРИАЛ:
 {material}
@@ -683,7 +843,14 @@ JSON:"""
 JSON жауап:"""
 
         try:
-            response_text = self._generate_with_retry(prompt)
+            response_text = self._generate_with_retry(
+                prompt,
+                max_output_tokens=self._quiz_max_output_tokens(
+                    count,
+                    include_explanations=True,
+                ),
+                timeout_seconds=self.quiz_request_timeout_seconds,
+            )
             json_text = self._clean_json_response(response_text)
             return json.loads(json_text)
         except json.JSONDecodeError as e:
@@ -691,7 +858,13 @@ JSON жауап:"""
         except Exception as e:
             raise Exception(f"Gemini API қатесі: {str(e)}")
 
-    async def generate_realtest_questions(self, material: str, count: int, lang: Optional[str] = None) -> dict:
+    async def generate_realtest_questions(
+        self,
+        material: str,
+        count: int,
+        lang: Optional[str] = None,
+        assistant_context: Optional[dict[str, Any]] = None,
+    ) -> dict:
         """
         Generate real test questions (no explanations, no hints).
         
@@ -702,9 +875,12 @@ JSON жауап:"""
         Returns:
             Dictionary with test questions
         """
+        count = max(5, min(30, int(count or 10)))
         # For large PDFs/text: summarize instead of hard truncation
         material = self._prepare_large_material(material, target_chars=50000, lang=lang)
         lang_instruction = self._language_instruction(lang)
+
+        personalization_context = self._assistant_context_block(assistant_context)
 
         prompt = f"""{self.system_prompt}
 {lang_instruction}
@@ -729,6 +905,14 @@ JSON жауап:"""
 - Қате жауаптар өте шатастыратын болсын
 - Қате жауаптардың ұзындығы дұрыс жауаппен шамалас болсын
 - Тек материалдағы фактілерді пайдалан
+- Every JSON field (`question`, `correct`, `wrong`) must be written only in the requested language
+- Never mix languages inside the quiz, even if the source material uses another language
+- PERSONALIZATION CONTEXT only changes coverage emphasis and difficulty.
+- NEVER ask about the student profile directly.
+- FACTUAL SOURCE MATERIAL remains the only factual source.
+
+ASSISTANT PERSONALIZATION CONTEXT:
+{personalization_context}
 
 МАТЕРИАЛ:
 {material}
@@ -736,7 +920,14 @@ JSON жауап:"""
 JSON жауап:"""
 
         try:
-            response_text = self._generate_with_retry(prompt)
+            response_text = self._generate_with_retry(
+                prompt,
+                max_output_tokens=self._quiz_max_output_tokens(
+                    count,
+                    include_explanations=False,
+                ),
+                timeout_seconds=self.quiz_request_timeout_seconds,
+            )
             json_text = self._clean_json_response(response_text)
             return json.loads(json_text)
         except json.JSONDecodeError as e:

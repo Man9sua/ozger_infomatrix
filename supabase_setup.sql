@@ -11,6 +11,10 @@ create extension if not exists "pgcrypto";
 -- =====================================================
 drop table if exists public.favorites cascade;
 drop table if exists public.materials cascade;
+drop table if exists public.assistant_quiz_attempt_items cascade;
+drop table if exists public.assistant_quiz_attempts cascade;
+drop table if exists public.assistant_user_facts cascade;
+drop table if exists public.assistant_user_state cascade;
 drop table if exists public.assistant_events cascade;
 drop table if exists public.assistant_messages cascade;
 drop table if exists public.assistant_sessions cascade;
@@ -360,6 +364,185 @@ create policy "Users can delete their own assistant events"
   on public.assistant_events for delete
   using (auth.uid() = user_id);
 
+-- =====================================================
+-- 7) ASSISTANT QUIZ ATTEMPTS / MEMORY
+-- =====================================================
+create table public.assistant_quiz_attempts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  session_id uuid references public.assistant_sessions(id) on delete set null,
+  assistant_event_id uuid references public.assistant_events(id) on delete set null,
+  mode varchar(20) not null default 'practice',
+  route varchar(80),
+  topic varchar(200),
+  source_type varchar(80),
+  source_id varchar(200),
+  source_title varchar(200),
+  correct integer not null default 0,
+  total integer not null default 0,
+  percent integer,
+  language varchar(12),
+  page_context jsonb not null default '{}'::jsonb,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index idx_assistant_quiz_attempts_user_id on public.assistant_quiz_attempts(user_id);
+create index idx_assistant_quiz_attempts_session_id on public.assistant_quiz_attempts(session_id);
+create index idx_assistant_quiz_attempts_created_at on public.assistant_quiz_attempts(created_at desc);
+create index idx_assistant_quiz_attempts_mode on public.assistant_quiz_attempts(mode);
+
+alter table public.assistant_quiz_attempts enable row level security;
+
+create policy "Users can view their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own assistant quiz attempts"
+  on public.assistant_quiz_attempts for delete
+  using (auth.uid() = user_id);
+
+create table public.assistant_quiz_attempt_items (
+  id uuid primary key default gen_random_uuid(),
+  attempt_id uuid references public.assistant_quiz_attempts(id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  question_index integer not null,
+  question_id varchar(120),
+  question_text text not null,
+  selected_answer text,
+  correct_answer text,
+  is_correct boolean not null default false,
+  explanation text,
+  topic_hint varchar(200),
+  source_question jsonb not null default '{}'::jsonb,
+  created_at timestamptz default now(),
+  unique(attempt_id, question_index)
+);
+
+create index idx_assistant_quiz_attempt_items_attempt_id on public.assistant_quiz_attempt_items(attempt_id);
+create index idx_assistant_quiz_attempt_items_user_id on public.assistant_quiz_attempt_items(user_id);
+create index idx_assistant_quiz_attempt_items_created_at on public.assistant_quiz_attempt_items(created_at desc);
+create index idx_assistant_quiz_attempt_items_is_correct on public.assistant_quiz_attempt_items(is_correct);
+
+alter table public.assistant_quiz_attempt_items enable row level security;
+
+create policy "Users can view their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own assistant quiz attempt items"
+  on public.assistant_quiz_attempt_items for delete
+  using (auth.uid() = user_id);
+
+alter table public.assistant_sessions add column if not exists status varchar(20) not null default 'active';
+alter table public.assistant_sessions add column if not exists quality_score integer not null default 0;
+alter table public.assistant_sessions add column if not exists summary text not null default '';
+alter table public.assistant_sessions add column if not exists closed_at timestamptz;
+alter table public.assistant_sessions add column if not exists abandoned_at timestamptz;
+alter table public.assistant_sessions add column if not exists conversation_turns integer not null default 0;
+alter table public.assistant_sessions add column if not exists fallback_count integer not null default 0;
+alter table public.assistant_sessions add column if not exists last_error_code varchar(80);
+alter table public.assistant_sessions add column if not exists last_model varchar(80);
+
+create index idx_assistant_sessions_status on public.assistant_sessions(status);
+create index idx_assistant_sessions_quality on public.assistant_sessions(quality_score desc);
+
+alter table public.assistant_messages add column if not exists turn_id uuid default gen_random_uuid();
+alter table public.assistant_messages add column if not exists latency_ms integer;
+alter table public.assistant_messages add column if not exists model_used varchar(80);
+alter table public.assistant_messages add column if not exists fallback_used boolean not null default false;
+alter table public.assistant_messages add column if not exists error_code varchar(80);
+alter table public.assistant_messages add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+create index idx_assistant_messages_turn_id on public.assistant_messages(turn_id);
+create index idx_assistant_messages_model on public.assistant_messages(model_used);
+
+create table public.assistant_user_state (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade unique not null,
+  preferred_language varchar(12) default 'kk',
+  preferred_difficulty varchar(20) default 'medium',
+  response_style varchar(40) default 'concise',
+  learning_goals jsonb not null default '[]'::jsonb,
+  weak_topics jsonb not null default '[]'::jsonb,
+  strong_topics jsonb not null default '[]'::jsonb,
+  recent_routes jsonb not null default '[]'::jsonb,
+  last_active_route varchar(80),
+  total_events integer not null default 0,
+  total_quizzes integer not null default 0,
+  successful_quizzes integer not null default 0,
+  average_quiz_percent numeric(6,2) not null default 0,
+  last_seen_at timestamptz default now(),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index idx_assistant_user_state_user_id on public.assistant_user_state(user_id);
+create index idx_assistant_user_state_last_seen on public.assistant_user_state(last_seen_at desc);
+
+alter table public.assistant_user_state enable row level security;
+
+create policy "Users can view their own assistant user state"
+  on public.assistant_user_state for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own assistant user state"
+  on public.assistant_user_state for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own assistant user state"
+  on public.assistant_user_state for update
+  using (auth.uid() = user_id);
+
+create policy "Users can delete their own assistant user state"
+  on public.assistant_user_state for delete
+  using (auth.uid() = user_id);
+
+create table public.assistant_user_facts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  fact_key varchar(160) not null,
+  fact_value text not null,
+  confidence numeric(4,3) not null default 0.5,
+  source_event_id uuid references public.assistant_events(id) on delete set null,
+  source_session_id uuid references public.assistant_sessions(id) on delete set null,
+  active boolean not null default true,
+  expires_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique(user_id, fact_key)
+);
+
+create index idx_assistant_user_facts_user_id on public.assistant_user_facts(user_id);
+create index idx_assistant_user_facts_active on public.assistant_user_facts(active);
+create index idx_assistant_user_facts_confidence on public.assistant_user_facts(confidence desc);
+
+alter table public.assistant_user_facts enable row level security;
+
+create policy "Users can view their own assistant user facts"
+  on public.assistant_user_facts for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own assistant user facts"
+  on public.assistant_user_facts for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own assistant user facts"
+  on public.assistant_user_facts for update
+  using (auth.uid() = user_id);
+
+create policy "Users can delete their own assistant user facts"
+  on public.assistant_user_facts for delete
+  using (auth.uid() = user_id);
+
 create or replace function public.update_updated_at_column()
 returns trigger
 language plpgsql
@@ -393,6 +576,16 @@ create trigger update_tests_updated_at
 drop trigger if exists update_assistant_sessions_updated_at on public.assistant_sessions;
 create trigger update_assistant_sessions_updated_at
   before update on public.assistant_sessions
+  for each row execute function public.update_updated_at_column();
+
+drop trigger if exists update_assistant_user_state_updated_at on public.assistant_user_state;
+create trigger update_assistant_user_state_updated_at
+  before update on public.assistant_user_state
+  for each row execute function public.update_updated_at_column();
+
+drop trigger if exists update_assistant_user_facts_updated_at on public.assistant_user_facts;
+create trigger update_assistant_user_facts_updated_at
+  before update on public.assistant_user_facts
   for each row execute function public.update_updated_at_column();
 
 -- Auto-create profiles + stats for every new auth user (registration)
