@@ -310,6 +310,36 @@ def assistant_session_detail(session_id: str):
         return jsonify({"error": str(exc)}), 500
 
 
+@app.route("/api/assistant/sessions/<session_id>", methods=["PATCH"])
+def assistant_session_rename(session_id: str):
+    try:
+        data = with_auth_context(parse_request_data())
+        data["session_id"] = session_id
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.rename_session(data)
+        status_code = 200 if result.get("success") else 400
+        return jsonify(result), status_code
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/assistant/sessions/<session_id>", methods=["DELETE"])
+def assistant_session_delete(session_id: str):
+    try:
+        data = with_auth_context(parse_request_data())
+        data["session_id"] = session_id
+        assistant = get_assistant_service(resolve_material)
+        result = assistant.delete_session(data)
+        status_code = 200 if result.get("success") else 400
+        return jsonify(result), status_code
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
 if __name__ == "__main__":
     port = int(os.getenv("AI_TEACHER_PORT", os.getenv("FLASK_PORT", "5000")))
     debug = os.getenv("FLASK_DEBUG", "true").strip().lower() == "true"

@@ -619,6 +619,18 @@ const i18n = {
         assistantOpenChat: 'Чатты ашу',
         assistantNewChat: 'Жаңа сессия',
         assistantSessionHistory: 'Сессия тарихы',
+        assistantRecommendations: 'Сізге ұсыныстар',
+        assistantSearchSessions: 'Сессия іздеу...',
+        assistantToday: 'Бүгін',
+        assistantYesterday: 'Кеше',
+        assistantLast7Days: 'Өткен 7 күн',
+        assistantEarlier: 'Ертерек',
+        assistantRenameSession: 'Сессия атауын өзгертіңіз:',
+        assistantDeleteSessionConfirm: 'Осы сессияны жою керек пе?',
+        assistantSessionRenamed: 'Сессия атауы жаңартылды',
+        assistantSessionDeleted: 'Сессия жойылды',
+        assistantSessionRenameError: 'Сессия атын өзгерту қатесі',
+        assistantSessionDeleteError: 'Сессияны жою қатесі',
         assistantQuickAccess: 'Жылдам басқару',
         assistantProfileContext: 'Профиль контексті',
         assistantFocusContext: 'Фокус және әлсіз тұстар',
@@ -1036,6 +1048,18 @@ const i18n = {
         assistantOpenChat: 'Открыть чат',
         assistantNewChat: 'Новая сессия',
         assistantSessionHistory: 'История сессий',
+        assistantRecommendations: 'Рекомендации для вас',
+        assistantSearchSessions: 'Поиск по сессиям...',
+        assistantToday: 'Сегодня',
+        assistantYesterday: 'Вчера',
+        assistantLast7Days: 'Последние 7 дней',
+        assistantEarlier: 'Ранее',
+        assistantRenameSession: 'Введите новое название сессии:',
+        assistantDeleteSessionConfirm: 'Удалить эту сессию?',
+        assistantSessionRenamed: 'Название сессии обновлено',
+        assistantSessionDeleted: 'Сессия удалена',
+        assistantSessionRenameError: 'Ошибка переименования сессии',
+        assistantSessionDeleteError: 'Ошибка удаления сессии',
         assistantQuickAccess: 'Быстрое управление',
         assistantProfileContext: 'Контекст профиля',
         assistantFocusContext: 'Фокус и слабые места',
@@ -1453,6 +1477,18 @@ const i18n = {
         assistantOpenChat: 'Open chat',
         assistantNewChat: 'New session',
         assistantSessionHistory: 'Session history',
+        assistantRecommendations: 'Recommendations for you',
+        assistantSearchSessions: 'Search sessions...',
+        assistantToday: 'Today',
+        assistantYesterday: 'Yesterday',
+        assistantLast7Days: 'Last 7 days',
+        assistantEarlier: 'Earlier',
+        assistantRenameSession: 'Rename this session:',
+        assistantDeleteSessionConfirm: 'Delete this session?',
+        assistantSessionRenamed: 'Session renamed',
+        assistantSessionDeleted: 'Session deleted',
+        assistantSessionRenameError: 'Session rename failed',
+        assistantSessionDeleteError: 'Session delete failed',
         assistantQuickAccess: 'Quick controls',
         assistantProfileContext: 'Profile context',
         assistantFocusContext: 'Focus and weak spots',
@@ -2219,7 +2255,9 @@ function hideAllPages() {
     document.getElementById('learningPage')?.classList.add('hidden');
     document.getElementById('libraryPage')?.classList.add('hidden');
     document.getElementById('favoritesPage')?.classList.add('hidden');
-    document.getElementById('assistantPage')?.classList.add('hidden');
+    const assistantPage = document.getElementById('assistantPage');
+    assistantPage?.classList.add('hidden');
+    assistantPage?.classList.remove('assistant-page-open');
     document.getElementById('guessGamePage')?.classList.add('hidden');
     document.getElementById('profilePage')?.classList.add('hidden');
     document.getElementById('classmatesPage')?.classList.add('hidden');
@@ -6646,6 +6684,9 @@ function escapeHtml(text) {
 
 // ==================== EVENT LISTENERS ====================
 const debouncedLibrarySearch = debounce(() => searchLibrary(), 220);
+const debouncedAssistantSessionSearch = debounce(() => {
+    refreshAssistantSessionsWithSearch(true);
+}, 220);
 
 function initEventListeners() {
     
@@ -6765,6 +6806,14 @@ function initEventListeners() {
     });
     document.getElementById('assistantNewSessionBtn')?.addEventListener('click', () => {
         handleAssistantNewSession();
+    });
+    document.getElementById('assistantSessionSearch')?.addEventListener('input', () => {
+        handleAssistantSessionSearch(false);
+    });
+    document.getElementById('assistantSessionSearch')?.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        handleAssistantSessionSearch(true);
     });
     document.getElementById('assistantInput')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -7277,7 +7326,8 @@ const AssistantState = {
     knowledgeSources: [],
     contextSummary: null,
     lastContextLoadAt: 0,
-    initializedUserId: null
+    initializedUserId: null,
+    sessionSearchTerm: ''
 };
 
 function getAssistantDefaultPrompts() {
@@ -7361,6 +7411,139 @@ function assistantTimeAgo(dateValue) {
     if (currentLang === 'ru') return `${diffDays} д назад`;
     if (currentLang === 'en') return `${diffDays} d ago`;
     return `${diffDays} к бұрын`;
+}
+
+function getAssistantSessionGroupLabel(groupKey) {
+    if (groupKey === 'today') return t('assistantToday') || 'Today';
+    if (groupKey === 'yesterday') return t('assistantYesterday') || 'Yesterday';
+    if (groupKey === 'last7') return t('assistantLast7Days') || 'Last 7 days';
+    return t('assistantEarlier') || 'Earlier';
+}
+
+function getAssistantSessionGroupKey(dateValue) {
+    const target = new Date(dateValue || Date.now());
+    if (!Number.isFinite(target.getTime())) return 'earlier';
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+    const diffDays = Math.floor((startToday - startTarget) / (24 * 60 * 60 * 1000));
+    if (diffDays <= 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays <= 7) return 'last7';
+    return 'earlier';
+}
+
+function assistantSessionMatchesSearch(session, searchTerm) {
+    const term = String(searchTerm || '').trim().toLowerCase();
+    if (!term) return true;
+    const haystack = [
+        session?.title || '',
+        session?.preview || '',
+        session?.summary || ''
+    ].join(' ').toLowerCase();
+    return haystack.includes(term);
+}
+
+function escapeAssistantHtml(text) {
+    return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderAssistantMarkdownToHtml(text) {
+    const escaped = escapeAssistantHtml(text || '');
+    if (!escaped.trim()) return '';
+
+    const codeBlocks = [];
+    let prepared = escaped.replace(/```([\s\S]*?)```/g, (_, code) => {
+        const token = `__CODE_BLOCK_${codeBlocks.length}__`;
+        codeBlocks.push(`<pre><code>${String(code || '').trim()}</code></pre>`);
+        return token;
+    });
+
+    prepared = prepared
+        .replace(/\r\n/g, '\n')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*(?!\s)(.+?)(?<!\s)\*/g, '$1<em>$2</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    const lines = prepared.split('\n');
+    let html = '';
+    let inUl = false;
+    let inOl = false;
+
+    const closeLists = () => {
+        if (inUl) {
+            html += '</ul>';
+            inUl = false;
+        }
+        if (inOl) {
+            html += '</ol>';
+            inOl = false;
+        }
+    };
+
+    lines.forEach(rawLine => {
+        const line = rawLine.trim();
+        if (!line) {
+            closeLists();
+            return;
+        }
+        if (/^[-*]\s+/.test(line)) {
+            if (!inUl) {
+                closeLists();
+                html += '<ul>';
+                inUl = true;
+            }
+            html += `<li>${line.replace(/^[-*]\s+/, '')}</li>`;
+            return;
+        }
+        if (/^\d+\.\s+/.test(line)) {
+            if (!inOl) {
+                closeLists();
+                html += '<ol>';
+                inOl = true;
+            }
+            html += `<li>${line.replace(/^\d+\.\s+/, '')}</li>`;
+            return;
+        }
+
+        closeLists();
+        if (/^#{1,3}\s+/.test(line)) {
+            const level = Math.min(3, (line.match(/^#+/) || ['#'])[0].length);
+            const content = line.replace(/^#{1,3}\s+/, '');
+            html += `<h${level}>${content}</h${level}>`;
+            return;
+        }
+        html += `<p>${line}</p>`;
+    });
+
+    closeLists();
+
+    codeBlocks.forEach((block, index) => {
+        html = html.replace(`__CODE_BLOCK_${index}__`, block);
+    });
+
+    return html;
+}
+
+function syncAssistantComposerState() {
+    const input = document.getElementById('assistantInput');
+    const sendBtn = document.getElementById('assistantSendBtn');
+    if (!sendBtn || !input) return;
+    const hasText = String(input.value || '').trim().length > 0;
+    sendBtn.disabled = AssistantState.pending || !hasText;
+}
+
+function autoResizeAssistantInput() {
+    const input = document.getElementById('assistantInput');
+    if (!input) return;
+    input.style.height = 'auto';
+    const nextHeight = Math.max(46, Math.min(220, input.scrollHeight));
+    input.style.height = `${nextHeight}px`;
 }
 
 function buildAssistantSessionTitle(message) {
@@ -7705,27 +7888,64 @@ async function loadAssistantSessions(force = false) {
         AssistantState.initializedUserId === currentUser.id &&
         AssistantState.sessions.length > 0;
     if (cacheFresh) return AssistantState.sessions;
+    if (!AI_TEACHER_API_URL) {
+        try {
+            await appInitPromise;
+            AI_TEACHER_API_URL = window.AI_TEACHER_API_URL || AI_TEACHER_API_URL;
+        } catch {}
+    }
+
+    const query = String(AssistantState.sessionSearchTerm || '').trim();
+    const token = await getAuthToken();
+
+    if (AI_TEACHER_API_URL) {
+        try {
+            const result = await AITeacherAPI.assistantListSessions({
+                user_id: currentUser.id,
+                q: query,
+                hide_raw_sessions: true,
+                _access_token: token
+            });
+            const sessions = Array.isArray(result?.sessions) ? result.sessions : [];
+            AssistantState.sessions = sessions.map(session => ({
+                id: session.id,
+                title: truncateAssistantText(session.title || t('assistantNewChat'), 72),
+                preview: truncateAssistantText(session.last_message_preview || session.preview || '', 110),
+                summary: truncateAssistantText(session.summary || '', 120),
+                created_at: session.created_at,
+                updated_at: session.updated_at || session.last_message_at
+            }));
+            return AssistantState.sessions;
+        } catch (error) {
+            console.warn('Assistant API sessions are unavailable, fallback to direct query:', error);
+        }
+    }
+
     if (!assistantSupportsPersistence()) return AssistantState.sessions;
 
     const { data, error } = await supabaseClient
         .from('assistant_sessions')
-        .select('id,title,last_message_preview,created_at,updated_at,last_message_at')
+        .select('id,title,last_message_preview,summary,created_at,updated_at,last_message_at')
         .eq('user_id', currentUser.id)
         .order('last_message_at', { ascending: false })
-        .limit(40);
+        .limit(60);
 
     if (error) {
-        console.warn('Assistant sessions are unavailable:', error);
+        console.warn('Assistant sessions fallback failed:', error);
         return AssistantState.sessions;
     }
 
-    AssistantState.sessions = (data || []).map(session => ({
+    const normalized = (data || []).map(session => ({
         id: session.id,
         title: truncateAssistantText(session.title || t('assistantNewChat'), 72),
         preview: truncateAssistantText(session.last_message_preview || '', 110),
+        summary: truncateAssistantText(session.summary || '', 120),
         created_at: session.created_at,
         updated_at: session.updated_at || session.last_message_at
     }));
+    AssistantState.sessions = query
+        ? normalized.filter(session => assistantSessionMatchesSearch(session, query))
+        : normalized;
     return AssistantState.sessions;
 }
 
@@ -7785,6 +8005,33 @@ async function loadAssistantMessages(sessionId) {
         return Array.isArray(localSession?.messages) ? localSession.messages : [];
     }
 
+    if (!AI_TEACHER_API_URL) {
+        try {
+            await appInitPromise;
+            AI_TEACHER_API_URL = window.AI_TEACHER_API_URL || AI_TEACHER_API_URL;
+        } catch {}
+    }
+
+    if (AI_TEACHER_API_URL) {
+        try {
+            const result = await AITeacherAPI.assistantGetSession(sessionId, {
+                user_id: currentUser.id,
+                _access_token: await getAuthToken()
+            });
+            const messages = Array.isArray(result?.messages) ? result.messages : [];
+            return messages.map(item => ({
+                role: item.role || 'assistant',
+                title: item.title || '',
+                content: item.content || '',
+                actions: safeAssistantJsonArray(item.actions),
+                citations: safeAssistantJsonArray(item.citations),
+                created_at: item.created_at
+            }));
+        } catch (error) {
+            console.warn('Assistant API session fetch failed, fallback to direct query:', error);
+        }
+    }
+
     const { data, error } = await supabaseClient
         .from('assistant_messages')
         .select('role,title,content,actions,citations,created_at')
@@ -7793,7 +8040,7 @@ async function loadAssistantMessages(sessionId) {
         .order('created_at', { ascending: true });
 
     if (error) {
-        console.warn('Assistant messages are unavailable:', error);
+        console.warn('Assistant messages fallback failed:', error);
         return [];
     }
 
@@ -7864,7 +8111,105 @@ async function ensureAssistantWorkspaceLoaded(force = false) {
         renderAssistantInsights();
     }
 
+    const searchInput = document.getElementById('assistantSessionSearch');
+    if (searchInput && searchInput.value !== AssistantState.sessionSearchTerm) {
+        searchInput.value = AssistantState.sessionSearchTerm;
+    }
+
     return true;
+}
+
+function handleAssistantSessionSearch(force = false) {
+    const searchInput = document.getElementById('assistantSessionSearch');
+    const nextSearchTerm = String(searchInput?.value || '').trim();
+    if (nextSearchTerm === AssistantState.sessionSearchTerm && !force) return;
+
+    AssistantState.sessionSearchTerm = nextSearchTerm;
+
+    if (force) {
+        debouncedAssistantSessionSearch.cancel();
+        refreshAssistantSessionsWithSearch(true);
+        return;
+    }
+
+    debouncedAssistantSessionSearch();
+}
+
+async function refreshAssistantSessionsWithSearch(force = false) {
+    try {
+        await loadAssistantSessions(force);
+        renderAssistantSessions();
+    } catch (error) {
+        console.warn('Assistant session search refresh failed:', error);
+        renderAssistantSessions();
+    }
+}
+
+async function renameAssistantSession(sessionId) {
+    const session = AssistantState.sessions.find(item => item.id === sessionId);
+    if (!session) return;
+    const initialTitle = session.title || '';
+    const newTitle = prompt(t('assistantRenameSession') || 'Rename session:', initialTitle);
+    const normalizedTitle = String(newTitle || '').trim();
+    if (!normalizedTitle || normalizedTitle === initialTitle) return;
+
+    try {
+        if (isAssistantPersistentSessionId(sessionId) && AI_TEACHER_API_URL) {
+            const result = await AITeacherAPI.assistantRenameSession(sessionId, {
+                user_id: currentUser?.id,
+                title: normalizedTitle,
+                _access_token: await getAuthToken()
+            });
+            if (!result?.success) {
+                throw new Error(result?.error || 'Rename failed');
+            }
+        }
+        await updateAssistantSessionSnapshot(sessionId, { title: normalizedTitle });
+        renderAssistantSessions();
+        renderAssistantMessages();
+        renderAssistantInsights();
+        showToast(t('assistantSessionRenamed') || 'Session renamed', 'success', 2200);
+    } catch (error) {
+        console.warn('Assistant rename failed:', error);
+        showToast(t('assistantSessionRenameError') || 'Session rename failed', 'error');
+    }
+}
+
+async function deleteAssistantSession(sessionId) {
+    const shouldDelete = confirm(t('assistantDeleteSessionConfirm') || 'Delete this session?');
+    if (!shouldDelete) return;
+
+    try {
+        if (isAssistantPersistentSessionId(sessionId) && AI_TEACHER_API_URL) {
+            const result = await AITeacherAPI.assistantDeleteSession(sessionId, {
+                user_id: currentUser?.id,
+                _access_token: await getAuthToken()
+            });
+            if (!result?.success) {
+                throw new Error(result?.error || 'Delete failed');
+            }
+        }
+
+        AssistantState.sessions = AssistantState.sessions.filter(item => item.id !== sessionId);
+
+        if (AssistantState.currentSessionId === sessionId) {
+            AssistantState.currentSessionId = null;
+            AssistantState.history = [];
+            if (AssistantState.sessions.length > 0) {
+                await switchAssistantSession(AssistantState.sessions[0].id);
+            } else {
+                await handleAssistantNewSession();
+            }
+        } else {
+            renderAssistantSessions();
+            renderAssistantInsights();
+        }
+
+        showToast(t('assistantSessionDeleted') || 'Session deleted', 'success', 2200);
+    } catch (error) {
+        console.warn('Assistant delete failed:', error);
+        showToast(t('assistantSessionDeleteError') || 'Session delete failed', 'error');
+    }
 }
 
 function renderAssistantSessions() {
@@ -7872,7 +8217,12 @@ function renderAssistantSessions() {
     if (!container) return;
     container.innerHTML = '';
 
-    if (!AssistantState.sessions.length) {
+    const searchTerm = String(AssistantState.sessionSearchTerm || '').trim();
+    const visibleSessions = searchTerm
+        ? AssistantState.sessions.filter(session => assistantSessionMatchesSearch(session, searchTerm))
+        : AssistantState.sessions;
+
+    if (!visibleSessions.length) {
         const empty = document.createElement('div');
         empty.className = 'assistant-context-item assistant-empty-state';
         empty.textContent = t('assistantNoSessions');
@@ -7880,25 +8230,77 @@ function renderAssistantSessions() {
         return;
     }
 
-    AssistantState.sessions.forEach(session => {
+    visibleSessions.forEach(session => {
+        const isActive = session.id === AssistantState.currentSessionId;
+        const row = document.createElement('div');
+        row.className = `assistant-session-row${isActive ? ' active' : ''}`;
+
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `assistant-session-item${session.id === AssistantState.currentSessionId ? ' active' : ''}`;
+        button.className = 'assistant-session-main';
         button.onclick = () => switchAssistantSession(session.id);
+
+        const titleText = session.title || t('assistantNewChat');
+        const previewText = String(session.preview || '').trim();
+        const timeText = assistantTimeAgo(session.updated_at);
+
+        const header = document.createElement('div');
+        header.className = 'assistant-session-item-header';
 
         const title = document.createElement('div');
         title.className = 'assistant-session-item-title';
-        title.textContent = session.title || t('assistantNewChat');
+        title.textContent = titleText;
+        title.title = titleText;
+        header.appendChild(title);
+
+        if (timeText) {
+            const time = document.createElement('span');
+            time.className = 'assistant-session-item-time';
+            time.textContent = timeText;
+            time.title = timeText;
+            header.appendChild(time);
+        }
 
         const meta = document.createElement('div');
         meta.className = 'assistant-session-item-meta';
-        meta.textContent = session.preview
-            ? `${session.preview} • ${assistantTimeAgo(session.updated_at)}`
-            : assistantTimeAgo(session.updated_at);
+        meta.textContent = previewText;
+        meta.title = previewText;
 
-        button.appendChild(title);
-        button.appendChild(meta);
-        container.appendChild(button);
+        button.appendChild(header);
+        if (previewText) {
+            button.appendChild(meta);
+        }
+        row.appendChild(button);
+
+        const actions = document.createElement('div');
+        actions.className = 'assistant-session-actions';
+
+        const renameBtn = document.createElement('button');
+        renameBtn.type = 'button';
+        renameBtn.className = 'assistant-session-icon-btn assistant-session-rename-btn';
+        renameBtn.textContent = '✎';
+        renameBtn.title = t('assistantRenameSession') || 'Rename session';
+        renameBtn.setAttribute('aria-label', renameBtn.title);
+        renameBtn.onclick = (event) => {
+            event.stopPropagation();
+            renameAssistantSession(session.id);
+        };
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'assistant-session-icon-btn assistant-session-delete-btn';
+        deleteBtn.textContent = '✕';
+        deleteBtn.title = t('assistantDeleteSessionConfirm') || 'Delete session';
+        deleteBtn.setAttribute('aria-label', deleteBtn.title);
+        deleteBtn.onclick = (event) => {
+            event.stopPropagation();
+            deleteAssistantSession(session.id);
+        };
+
+        actions.appendChild(renameBtn);
+        actions.appendChild(deleteBtn);
+        row.appendChild(actions);
+        container.appendChild(row);
     });
 }
 
@@ -8141,7 +8543,13 @@ async function showAssistant() {
         return;
     }
     hideAllPages();
-    document.getElementById('assistantPage')?.classList.remove('hidden');
+    const assistantPage = document.getElementById('assistantPage');
+    if (assistantPage) {
+        assistantPage.classList.remove('hidden');
+        assistantPage.classList.remove('assistant-page-open');
+        void assistantPage.offsetWidth;
+        assistantPage.classList.add('assistant-page-open');
+    }
     await ensureAssistantWorkspaceLoaded();
     document.getElementById('assistantInput')?.focus();
     recordAssistantExperience('page_open', { route: 'assistant', action: 'assistant' });
@@ -10326,6 +10734,72 @@ const AITeacherAPI = {
                 cache: 'no-store'
             }),
             'Assistant quiz error'
+        );
+    },
+
+    async assistantListSessions(payload = {}) {
+        const params = new URLSearchParams();
+        Object.entries(payload || {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+            params.set(key, String(value));
+        });
+        const endpoint = resolveAiApiEndpoint('assistant/sessions');
+        const url = params.toString() ? `${endpoint}?${params.toString()}` : endpoint;
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(url, {
+                method: 'GET',
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant sessions list error'
+        );
+    },
+
+    async assistantGetSession(sessionId, payload = {}) {
+        const params = new URLSearchParams();
+        Object.entries(payload || {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+            params.set(key, String(value));
+        });
+        const endpoint = resolveAiApiEndpoint(`assistant/sessions/${encodeURIComponent(sessionId)}`);
+        const url = params.toString() ? `${endpoint}?${params.toString()}` : endpoint;
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(url, {
+                method: 'GET',
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant session fetch error'
+        );
+    },
+
+    async assistantRenameSession(sessionId, payload = {}) {
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(resolveAiApiEndpoint(`assistant/sessions/${encodeURIComponent(sessionId)}`), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload || {}),
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant session rename error'
+        );
+    },
+
+    async assistantDeleteSession(sessionId, payload = {}) {
+        return await aiRequestWithRetry(
+            () => fetchJsonWithControl(resolveAiApiEndpoint(`assistant/sessions/${encodeURIComponent(sessionId)}`), {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload || {}),
+                timeoutMs: AI_GENERATE_QUIZ_TIMEOUT_MS,
+                credentials: 'omit',
+                cache: 'no-store'
+            }),
+            'Assistant session delete error'
         );
     },
 

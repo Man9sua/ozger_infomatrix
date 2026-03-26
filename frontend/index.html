@@ -8,6 +8,7 @@
     <link rel="icon" href="data:," sizes="any">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/ai-containers.css">
+    <link rel="stylesheet" href="css/assistant-ui-refresh.css">
     <style>
         @font-face {
             font-family: 'FredokaOne';
@@ -771,9 +772,27 @@
 
                 <button class="btn btn-primary assistant-new-session-btn" id="assistantNewSessionBtn" data-i18n="assistantNewChat">Жаңа сессия</button>
 
+                <label class="assistant-session-search-wrap" for="assistantSessionSearch">
+                    <span class="assistant-session-search-icon">⌕</span>
+                    <input
+                        id="assistantSessionSearch"
+                        class="assistant-session-search-input"
+                        type="text"
+                        placeholder="Сессия іздеу..."
+                        data-i18n-placeholder="assistantSearchSessions"
+                        autocomplete="off">
+                </label>
+
                 <div class="assistant-sidebar-section">
                     <div class="assistant-panel-label" data-i18n="assistantSessionHistory">Сессия тарихы</div>
                     <div class="assistant-session-list" id="assistantSessionList"></div>
+                </div>
+
+                <div class="assistant-sidebar-footer">
+                    <div class="assistant-sidebar-user">
+                        <span class="assistant-sidebar-user-icon">👤</span>
+                        <span class="assistant-sidebar-user-name" id="assistantSidebarUsername">User</span>
+                    </div>
                 </div>
             </aside>
 
@@ -786,66 +805,22 @@
                     </div>
                 </div>
 
-                <div class="assistant-control-grid">
-                    <button class="assistant-control-btn" type="button" onclick="showLibrary()">
-                        <span class="assistant-control-icon">📚</span>
-                        <span data-i18n="assistantQuickLibrary">Кітапхана</span>
-                    </button>
-                    <button class="assistant-control-btn" type="button" onclick="showUploadModal()">
-                        <span class="assistant-control-icon">⬆</span>
-                        <span data-i18n="assistantQuickUpload">Жүктеу</span>
-                    </button>
-                    <button class="assistant-control-btn" type="button" onclick="showPracticeMode()">
-                        <span class="assistant-control-icon">✍</span>
-                        <span data-i18n="assistantQuickPractice">Жаттығу</span>
-                    </button>
-                    <button class="assistant-control-btn" type="button" onclick="showRealTestMode()">
-                        <span class="assistant-control-icon">🎯</span>
-                        <span data-i18n="assistantQuickRealtest">Real Test</span>
-                    </button>
-                    <button class="assistant-control-btn" type="button" onclick="showFavorites()">
-                        <span class="assistant-control-icon">★</span>
-                        <span data-i18n="assistantQuickFavorites">Таңдаулылар</span>
-                    </button>
-                    <button class="assistant-control-btn" type="button" onclick="showProfile()">
-                        <span class="assistant-control-icon">👤</span>
-                        <span data-i18n="assistantQuickProfile">Профиль</span>
-                    </button>
+                <div class="assistant-chat-card">
+                    <div class="assistant-messages" id="assistantMessages"></div>
                 </div>
 
-                <div class="assistant-panel">
-                    <div class="assistant-messages" id="assistantMessages"></div>
-                    <div class="assistant-suggestions" id="assistantSuggestions"></div>
+                <div class="assistant-input-zone">
                     <div class="assistant-composer">
                         <textarea
                             id="assistantInput"
                             class="assistant-input"
-                            rows="3"
+                            rows="1"
                             placeholder="Сұрағыңызды жазыңыз..."
                             data-i18n-placeholder="assistantPlaceholder"></textarea>
-                        <button class="btn btn-primary assistant-send-btn" id="assistantSendBtn" data-i18n="assistantSend">Жіберу</button>
                     </div>
+                    <button class="btn btn-primary assistant-send-btn" id="assistantSendBtn" data-i18n="assistantSend">Жіберу</button>
                 </div>
             </section>
-
-            <aside class="assistant-insights">
-                <div class="assistant-context-card">
-                    <div class="assistant-panel-label" data-i18n="assistantProfileContext">Профиль контексті</div>
-                    <div class="assistant-context-list" id="assistantProfileSummary"></div>
-                </div>
-                <div class="assistant-context-card">
-                    <div class="assistant-panel-label" data-i18n="assistantFocusContext">Фокус және әлсіз тұстар</div>
-                    <div class="assistant-context-list" id="assistantFocusSummary"></div>
-                </div>
-                <div class="assistant-context-card">
-                    <div class="assistant-panel-label" data-i18n="assistantErrorsContext">Соңғы қателер</div>
-                    <div class="assistant-context-list" id="assistantErrorSummary"></div>
-                </div>
-                <div class="assistant-context-card">
-                    <div class="assistant-panel-label" data-i18n="assistantKnowledgeContext">Қолдағы дереккөздер</div>
-                    <div class="assistant-context-list" id="assistantSourceSummary"></div>
-                </div>
-            </aside>
         </div>
     </main>
 
@@ -1183,7 +1158,7 @@
             <div class="style-grid">
                 <div class="style-card" data-style="basic">
                     <div class="style-preview style-preview-basic"><div class="preview-grid"></div></div>
-                    <span class="style-name">Basic</span>
+                    <span class="style-name">Light</span>
                 </div>
                 <div class="style-card" data-style="dark">
                     <div class="style-preview style-preview-dark"><div class="preview-grid"></div></div>

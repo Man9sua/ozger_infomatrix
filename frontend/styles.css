@@ -724,32 +724,115 @@ body {
 }
 
 .assistant-entry-window {
+    --aew-border: rgba(148, 163, 184, 0.2);
+    --aew-bg:
+        radial-gradient(circle at top left, rgba(251, 191, 36, 0.16), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.16), transparent 34%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.92));
+    --aew-shadow: 0 30px 70px rgba(15, 23, 42, 0.22);
+    --aew-hover-border: rgba(34, 197, 94, 0.34);
+    --aew-hover-shadow: 0 34px 80px rgba(15, 23, 42, 0.28);
+    --aew-badge-bg: rgba(15, 118, 110, 0.22);
+    --aew-badge-border: rgba(45, 212, 191, 0.28);
+    --aew-badge-color: #d5fff7;
+    --aew-title-color: #f8fafc;
+    --aew-text-color: rgba(226, 232, 240, 0.88);
+    --aew-tag-border: rgba(148, 163, 184, 0.18);
+    --aew-tag-bg: rgba(255, 255, 255, 0.06);
+    --aew-tag-color: #e2e8f0;
+    --aew-preview-border: rgba(148, 163, 184, 0.18);
+    --aew-preview-bg: rgba(255, 255, 255, 0.06);
+    --aew-preview-header-border: rgba(148, 163, 184, 0.14);
+    --aew-preview-dot: rgba(226, 232, 240, 0.72);
+    --aew-preview-card-bg:
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 44%),
+        rgba(15, 23, 42, 0.72);
+    --aew-preview-card-border: rgba(148, 163, 184, 0.16);
+    --aew-preview-card-color: #f8fafc;
+    --aew-preview-card-text: rgba(226, 232, 240, 0.78);
+    --aew-preview-label: rgba(148, 163, 184, 0.9);
+    --aew-mini-bg: rgba(15, 23, 42, 0.58);
+    --aew-mini-border: rgba(148, 163, 184, 0.14);
+    --aew-mini-color: #e2e8f0;
+    --aew-neon-1: rgba(56, 189, 248, 0.42);
+    --aew-neon-2: rgba(34, 197, 94, 0.38);
+    --aew-neon-3: rgba(168, 85, 247, 0.34);
+    --aew-overlay-1: rgba(255, 255, 255, 0.1);
+    --aew-overlay-2: rgba(148, 163, 184, 0.08);
+    --aew-overlay-3: rgba(255, 255, 255, 0.04);
+    --aew-overlay-opacity: 0.44;
+    --aew-btn-bg-start: rgba(34, 197, 94, 0.9);
+    --aew-btn-bg-end: rgba(16, 185, 129, 0.92);
+    --aew-btn-border: rgba(167, 243, 208, 0.6);
+    --aew-btn-color: #ecfff5;
+    --aew-btn-glow: rgba(16, 185, 129, 0.44);
+    --aew-btn-sheen: rgba(255, 255, 255, 0.78);
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
     gap: 26px;
     padding: 28px;
     border-radius: 30px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    background:
-        radial-gradient(circle at top left, rgba(251, 191, 36, 0.16), transparent 36%),
-        radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.16), transparent 34%),
-        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.92));
-    box-shadow: 0 30px 70px rgba(15, 23, 42, 0.22);
+    border: 1px solid var(--aew-border);
+    background: var(--aew-bg);
+    box-shadow: var(--aew-shadow);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
     transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.assistant-entry-window::before {
+    content: "";
+    position: absolute;
+    inset: -28%;
+    background:
+        conic-gradient(
+            from 0deg at 50% 50%,
+            transparent 0deg,
+            var(--aew-neon-1) 72deg,
+            transparent 124deg,
+            var(--aew-neon-2) 198deg,
+            transparent 250deg,
+            var(--aew-neon-3) 330deg,
+            transparent 360deg
+        );
+    filter: blur(44px);
+    opacity: 0.42;
+    pointer-events: none;
+    animation: assistantEntryAura 15s linear infinite;
+    z-index: 0;
+}
+
+.assistant-entry-window::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 14% 20%, var(--aew-overlay-1), transparent 40%),
+        radial-gradient(circle at 84% 82%, var(--aew-overlay-2), transparent 46%),
+        linear-gradient(122deg, transparent 0%, var(--aew-overlay-3) 48%, transparent 76%);
+    opacity: var(--aew-overlay-opacity);
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.96) 18%, rgba(0, 0, 0, 0.96) 86%, transparent 100%);
+    animation: assistantEntryScan 9s ease-in-out infinite;
+    z-index: 0;
 }
 
 .assistant-entry-window:hover {
     transform: translateY(-2px);
-    border-color: rgba(34, 197, 94, 0.34);
-    box-shadow: 0 34px 80px rgba(15, 23, 42, 0.28);
+    border-color: var(--aew-hover-border);
+    box-shadow: var(--aew-hover-shadow);
 }
 
 .assistant-entry-copy {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 4px;
+    position: relative;
+    z-index: 1;
 }
 
 .assistant-entry-badge {
@@ -758,9 +841,9 @@ body {
     align-self: flex-start;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(15, 118, 110, 0.22);
-    border: 1px solid rgba(45, 212, 191, 0.28);
-    color: #d5fff7;
+    background: var(--aew-badge-bg);
+    border: 1px solid var(--aew-badge-border);
+    color: var(--aew-badge-color);
     font-family: 'Monocraft', monospace;
     font-size: 0.72rem;
     letter-spacing: 0.06em;
@@ -769,7 +852,7 @@ body {
 
 .assistant-entry-title {
     margin: 0;
-    color: #f8fafc;
+    color: var(--aew-title-color);
     font-size: clamp(1.85rem, 3vw, 2.7rem);
     line-height: 1.08;
 }
@@ -777,7 +860,7 @@ body {
 .assistant-entry-text {
     margin: 0;
     max-width: 680px;
-    color: rgba(226, 232, 240, 0.88);
+    color: var(--aew-text-color);
     font-size: 1.02rem;
     line-height: 1.7;
 }
@@ -793,29 +876,62 @@ body {
     align-items: center;
     padding: 9px 12px;
     border-radius: 14px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    background: rgba(255, 255, 255, 0.06);
-    color: #e2e8f0;
+    border: 1px solid var(--aew-tag-border);
+    background: var(--aew-tag-bg);
+    color: var(--aew-tag-color);
     font-size: 0.92rem;
 }
 
 .assistant-entry-btn {
     align-self: flex-start;
-    min-width: 180px;
+    min-width: 196px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--aew-btn-border);
+    background: linear-gradient(95deg, var(--aew-btn-bg-start), var(--aew-btn-bg-end));
+    color: var(--aew-btn-color);
+    box-shadow: 0 0 20px var(--aew-btn-glow), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.26);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.assistant-entry-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        110deg,
+        transparent 0%,
+        transparent 40%,
+        var(--aew-btn-sheen) 50%,
+        transparent 60%,
+        transparent 100%
+    );
+    transform: translateX(-140%);
+    animation: assistantEntryButtonSweep 2.8s linear infinite;
+    pointer-events: none;
+}
+
+.assistant-entry-btn:hover {
+    transform: translateY(-1px) scale(1.01);
+    filter: saturate(1.08);
+    box-shadow: 0 0 26px var(--aew-btn-glow), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 }
 
 .assistant-entry-preview {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
 }
 
 .assistant-entry-preview-window {
     width: 100%;
     max-width: 420px;
     border-radius: 24px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--aew-preview-border);
+    background: var(--aew-preview-bg);
     backdrop-filter: blur(16px);
     overflow: hidden;
 }
@@ -824,14 +940,14 @@ body {
     display: flex;
     gap: 8px;
     padding: 14px 16px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    border-bottom: 1px solid var(--aew-preview-header-border);
 }
 
 .assistant-entry-preview-dot {
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    background: rgba(226, 232, 240, 0.72);
+    background: var(--aew-preview-dot);
 }
 
 .assistant-entry-preview-body {
@@ -847,22 +963,20 @@ body {
     gap: 8px;
     padding: 18px;
     border-radius: 20px;
-    background:
-        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 44%),
-        rgba(15, 23, 42, 0.72);
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    color: #f8fafc;
+    background: var(--aew-preview-card-bg);
+    border: 1px solid var(--aew-preview-card-border);
+    color: var(--aew-preview-card-color);
 }
 
 .assistant-entry-preview-card p {
     margin: 0;
-    color: rgba(226, 232, 240, 0.78);
+    color: var(--aew-preview-card-text);
     line-height: 1.5;
     font-size: 0.94rem;
 }
 
 .assistant-entry-preview-label {
-    color: rgba(148, 163, 184, 0.9);
+    color: var(--aew-preview-label);
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -880,14 +994,222 @@ body {
     gap: 8px;
     padding: 15px;
     border-radius: 18px;
-    background: rgba(15, 23, 42, 0.58);
-    border: 1px solid rgba(148, 163, 184, 0.14);
-    color: #e2e8f0;
+    background: var(--aew-mini-bg);
+    border: 1px solid var(--aew-mini-border);
+    color: var(--aew-mini-color);
     min-height: 96px;
 }
 
 .assistant-entry-mini-icon {
     font-size: 1.1rem;
+}
+
+[data-theme="basic"] .assistant-entry-window {
+    --aew-border: rgba(30, 64, 175, 0.24);
+    --aew-bg:
+        radial-gradient(circle at 12% 12%, rgba(56, 189, 248, 0.26), transparent 40%),
+        radial-gradient(circle at 78% 20%, rgba(59, 130, 246, 0.2), transparent 44%),
+        radial-gradient(circle at 84% 86%, rgba(16, 185, 129, 0.14), transparent 42%),
+        linear-gradient(150deg, rgba(255, 255, 255, 0.99), rgba(244, 250, 255, 0.98));
+    --aew-shadow: 0 22px 52px rgba(30, 64, 175, 0.16);
+    --aew-hover-border: rgba(37, 99, 235, 0.4);
+    --aew-hover-shadow: 0 26px 58px rgba(30, 64, 175, 0.2);
+    --aew-badge-bg: rgba(37, 99, 235, 0.12);
+    --aew-badge-border: rgba(37, 99, 235, 0.28);
+    --aew-badge-color: #0f2d62;
+    --aew-title-color: #102750;
+    --aew-text-color: rgba(25, 54, 101, 0.88);
+    --aew-tag-border: rgba(37, 99, 235, 0.22);
+    --aew-tag-bg: rgba(255, 255, 255, 0.86);
+    --aew-tag-color: #173f80;
+    --aew-preview-border: rgba(37, 99, 235, 0.18);
+    --aew-preview-bg: rgba(255, 255, 255, 0.84);
+    --aew-preview-header-border: rgba(37, 99, 235, 0.14);
+    --aew-preview-dot: rgba(21, 73, 153, 0.52);
+    --aew-preview-card-bg:
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 46%),
+        rgba(255, 255, 255, 0.9);
+    --aew-preview-card-border: rgba(37, 99, 235, 0.16);
+    --aew-preview-card-color: #122a54;
+    --aew-preview-card-text: rgba(18, 42, 84, 0.8);
+    --aew-preview-label: rgba(29, 78, 160, 0.74);
+    --aew-mini-bg: rgba(248, 252, 255, 0.92);
+    --aew-mini-border: rgba(37, 99, 235, 0.14);
+    --aew-mini-color: #184286;
+    --aew-neon-1: rgba(56, 189, 248, 0.3);
+    --aew-neon-2: rgba(37, 99, 235, 0.24);
+    --aew-neon-3: rgba(16, 185, 129, 0.18);
+    --aew-overlay-1: rgba(56, 189, 248, 0.16);
+    --aew-overlay-2: rgba(37, 99, 235, 0.1);
+    --aew-overlay-3: rgba(255, 255, 255, 0.22);
+    --aew-overlay-opacity: 0.48;
+    --aew-btn-bg-start: rgba(29, 78, 216, 0.94);
+    --aew-btn-bg-end: rgba(14, 116, 144, 0.92);
+    --aew-btn-border: rgba(191, 219, 254, 0.76);
+    --aew-btn-color: #f7fbff;
+    --aew-btn-glow: rgba(37, 99, 235, 0.28);
+    --aew-btn-sheen: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] .assistant-entry-window {
+    --aew-border: rgba(99, 102, 241, 0.28);
+    --aew-bg:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 44%),
+        radial-gradient(circle at 72% 36%, rgba(99, 102, 241, 0.12), transparent 42%),
+        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.08), transparent 46%),
+        linear-gradient(145deg, rgba(5, 8, 16, 0.98), rgba(10, 14, 26, 0.97));
+    --aew-shadow: 0 34px 82px rgba(2, 6, 23, 0.62);
+    --aew-hover-border: rgba(129, 140, 248, 0.45);
+    --aew-hover-shadow: 0 34px 84px rgba(15, 23, 42, 0.56);
+    --aew-badge-bg: rgba(99, 102, 241, 0.18);
+    --aew-badge-border: rgba(129, 140, 248, 0.34);
+    --aew-badge-color: #d6dcff;
+    --aew-title-color: #edf2ff;
+    --aew-text-color: rgba(200, 212, 236, 0.84);
+    --aew-tag-border: rgba(129, 140, 248, 0.22);
+    --aew-tag-bg: rgba(15, 23, 42, 0.54);
+    --aew-tag-color: #dce5ff;
+    --aew-preview-border: rgba(129, 140, 248, 0.2);
+    --aew-preview-bg: rgba(10, 14, 26, 0.66);
+    --aew-preview-header-border: rgba(129, 140, 248, 0.16);
+    --aew-preview-dot: rgba(203, 213, 225, 0.7);
+    --aew-preview-card-bg:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 46%),
+        rgba(8, 12, 24, 0.8);
+    --aew-preview-card-border: rgba(129, 140, 248, 0.18);
+    --aew-preview-card-color: #f3f6ff;
+    --aew-preview-card-text: rgba(214, 223, 241, 0.78);
+    --aew-preview-label: rgba(173, 187, 214, 0.84);
+    --aew-mini-bg: rgba(8, 12, 24, 0.74);
+    --aew-mini-border: rgba(129, 140, 248, 0.14);
+    --aew-mini-color: #dce5ff;
+    --aew-neon-1: rgba(129, 140, 248, 0.28);
+    --aew-neon-2: rgba(59, 130, 246, 0.22);
+    --aew-neon-3: rgba(16, 185, 129, 0.16);
+    --aew-overlay-1: rgba(129, 140, 248, 0.2);
+    --aew-overlay-2: rgba(59, 130, 246, 0.12);
+    --aew-overlay-3: rgba(5, 8, 16, 0.3);
+    --aew-overlay-opacity: 0.38;
+    --aew-btn-bg-start: rgba(99, 102, 241, 0.9);
+    --aew-btn-bg-end: rgba(79, 70, 229, 0.92);
+    --aew-btn-border: rgba(199, 210, 254, 0.62);
+    --aew-btn-color: #f2f5ff;
+    --aew-btn-glow: rgba(99, 102, 241, 0.4);
+    --aew-btn-sheen: rgba(224, 231, 255, 0.72);
+}
+
+[data-theme="pixel"] .assistant-entry-window {
+    --aew-border: rgba(244, 211, 94, 0.65);
+    --aew-bg:
+        linear-gradient(145deg, rgba(21, 26, 46, 0.96), rgba(29, 37, 65, 0.94));
+    --aew-shadow: 8px 8px 0 rgba(9, 12, 22, 0.78);
+    --aew-hover-border: rgba(255, 230, 109, 0.92);
+    --aew-hover-shadow: 10px 10px 0 rgba(9, 12, 22, 0.88);
+    --aew-badge-bg: rgba(244, 211, 94, 0.2);
+    --aew-badge-border: rgba(255, 230, 109, 0.5);
+    --aew-badge-color: #fff2bb;
+    --aew-title-color: #f5f8ff;
+    --aew-text-color: rgba(218, 231, 255, 0.86);
+    --aew-tag-border: rgba(244, 211, 94, 0.4);
+    --aew-tag-bg: rgba(12, 18, 34, 0.74);
+    --aew-tag-color: #ffe89b;
+    --aew-preview-border: rgba(244, 211, 94, 0.42);
+    --aew-preview-bg: rgba(12, 18, 34, 0.72);
+    --aew-preview-header-border: rgba(244, 211, 94, 0.35);
+    --aew-preview-dot: rgba(255, 230, 109, 0.76);
+    --aew-preview-card-bg:
+        radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 44%),
+        rgba(11, 16, 32, 0.82);
+    --aew-preview-card-border: rgba(244, 211, 94, 0.35);
+    --aew-preview-card-color: #f8fbff;
+    --aew-preview-card-text: rgba(219, 231, 255, 0.78);
+    --aew-preview-label: rgba(255, 230, 109, 0.8);
+    --aew-mini-bg: rgba(13, 18, 34, 0.72);
+    --aew-mini-border: rgba(244, 211, 94, 0.3);
+    --aew-mini-color: #f2f6ff;
+    --aew-neon-1: rgba(255, 230, 109, 0.38);
+    --aew-neon-2: rgba(79, 70, 229, 0.3);
+    --aew-neon-3: rgba(56, 189, 248, 0.28);
+    --aew-overlay-1: rgba(255, 230, 109, 0.2);
+    --aew-overlay-2: rgba(79, 70, 229, 0.12);
+    --aew-overlay-3: rgba(10, 15, 28, 0.28);
+    --aew-overlay-opacity: 0.44;
+    --aew-btn-bg-start: rgba(244, 211, 94, 0.88);
+    --aew-btn-bg-end: rgba(245, 158, 11, 0.9);
+    --aew-btn-border: rgba(255, 237, 167, 0.8);
+    --aew-btn-color: #22160b;
+    --aew-btn-glow: rgba(245, 158, 11, 0.45);
+    --aew-btn-sheen: rgba(255, 248, 220, 0.75);
+}
+
+[data-theme="flow"] .assistant-entry-window {
+    --aew-border: rgba(0, 255, 65, 0.42);
+    --aew-bg:
+        radial-gradient(circle at top left, rgba(0, 255, 65, 0.16), transparent 42%),
+        radial-gradient(circle at bottom right, rgba(0, 255, 65, 0.12), transparent 45%),
+        linear-gradient(145deg, rgba(4, 17, 10, 0.96), rgba(6, 24, 14, 0.95));
+    --aew-shadow: 0 0 24px rgba(0, 255, 65, 0.24), 0 28px 72px rgba(0, 0, 0, 0.52);
+    --aew-hover-border: rgba(0, 255, 65, 0.74);
+    --aew-hover-shadow: 0 0 32px rgba(0, 255, 65, 0.3), 0 32px 82px rgba(0, 0, 0, 0.58);
+    --aew-badge-bg: rgba(0, 255, 65, 0.18);
+    --aew-badge-border: rgba(0, 255, 65, 0.4);
+    --aew-badge-color: #d6ffe0;
+    --aew-title-color: #e9ffef;
+    --aew-text-color: rgba(194, 255, 210, 0.82);
+    --aew-tag-border: rgba(0, 255, 65, 0.32);
+    --aew-tag-bg: rgba(5, 28, 13, 0.62);
+    --aew-tag-color: #d1ffdb;
+    --aew-preview-border: rgba(0, 255, 65, 0.26);
+    --aew-preview-bg: rgba(6, 30, 14, 0.6);
+    --aew-preview-header-border: rgba(0, 255, 65, 0.22);
+    --aew-preview-dot: rgba(146, 255, 173, 0.72);
+    --aew-preview-card-bg:
+        radial-gradient(circle at top right, rgba(0, 255, 65, 0.15), transparent 46%),
+        rgba(5, 24, 12, 0.74);
+    --aew-preview-card-border: rgba(0, 255, 65, 0.24);
+    --aew-preview-card-color: #e8ffed;
+    --aew-preview-card-text: rgba(197, 255, 212, 0.76);
+    --aew-preview-label: rgba(148, 255, 173, 0.84);
+    --aew-mini-bg: rgba(5, 24, 12, 0.68);
+    --aew-mini-border: rgba(0, 255, 65, 0.2);
+    --aew-mini-color: #d1ffdb;
+    --aew-neon-1: rgba(0, 255, 65, 0.48);
+    --aew-neon-2: rgba(45, 212, 191, 0.36);
+    --aew-neon-3: rgba(16, 185, 129, 0.26);
+    --aew-overlay-1: rgba(0, 255, 65, 0.22);
+    --aew-overlay-2: rgba(45, 212, 191, 0.14);
+    --aew-overlay-3: rgba(2, 16, 8, 0.28);
+    --aew-overlay-opacity: 0.42;
+    --aew-btn-bg-start: rgba(0, 255, 65, 0.84);
+    --aew-btn-bg-end: rgba(5, 150, 64, 0.92);
+    --aew-btn-border: rgba(134, 239, 172, 0.72);
+    --aew-btn-color: #03150a;
+    --aew-btn-glow: rgba(0, 255, 65, 0.42);
+    --aew-btn-sheen: rgba(220, 252, 231, 0.7);
+}
+
+@keyframes assistantEntryAura {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.08); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes assistantEntryScan {
+    0%, 100% { transform: translate3d(-2%, 0, 0); opacity: 0.26; }
+    50% { transform: translate3d(2%, -1.5%, 0); opacity: 0.42; }
+}
+
+@keyframes assistantEntryButtonSweep {
+    0% { transform: translateX(-140%); }
+    100% { transform: translateX(170%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .assistant-entry-window::before,
+    .assistant-entry-window::after,
+    .assistant-entry-btn::before {
+        animation: none !important;
+    }
 }
 
 .assistant-shell {
@@ -1268,6 +1590,8 @@ body {
 @media (max-width: 940px) {
     .assistant-entry-window {
         grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 22px;
     }
 
     .assistant-shell {
@@ -1283,6 +1607,16 @@ body {
     }
 
     .assistant-insights {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 820px) {
+    .assistant-entry-preview {
+        display: none;
+    }
+
+    .assistant-entry-window {
         grid-template-columns: 1fr;
     }
 }
@@ -1318,7 +1652,36 @@ body {
     }
 
     .assistant-entry-window {
-        padding: 20px;
+        padding: 18px;
+    }
+
+    .assistant-entry-copy {
+        gap: 12px;
+        padding-top: 0;
+    }
+
+    .assistant-entry-title {
+        font-size: clamp(1.45rem, 7.4vw, 1.9rem);
+        line-height: 1.18;
+    }
+
+    .assistant-entry-text {
+        font-size: 0.94rem;
+        line-height: 1.55;
+    }
+
+    .assistant-entry-tags {
+        gap: 8px;
+    }
+
+    .assistant-entry-tag {
+        font-size: 0.82rem;
+        padding: 7px 10px;
+    }
+
+    .assistant-entry-btn {
+        width: 100%;
+        min-width: 0;
     }
 }
 

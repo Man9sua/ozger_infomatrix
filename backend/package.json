@@ -37,5 +37,10 @@
     "supabase"
   ],
   "author": "ozgerupt team",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "csurf": {
+      "cookie": "0.7.0"
+    }
+  }
 }

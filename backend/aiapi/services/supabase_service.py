@@ -200,3 +200,22 @@ class SupabaseService:
             prefer=prefer,
         )
         return data if isinstance(data, list) else []
+
+    def delete(
+        self,
+        table: str,
+        filters: dict[str, Any],
+        *,
+        auth_token: Optional[str] = None,
+        use_service_role: bool = False,
+        prefer: str = "return=representation",
+    ) -> list[dict[str, Any]]:
+        data = self._request_json(
+            f"/rest/v1/{table}",
+            method="DELETE",
+            params=filters,
+            auth_token=auth_token,
+            use_service_role=use_service_role,
+            prefer=prefer,
+        )
+        return data if isinstance(data, list) else []

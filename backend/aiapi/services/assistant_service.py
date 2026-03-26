@@ -2723,13 +2723,21 @@ JSON жауап:"""
         if not user_id:
             return {"sessions": [], "total": 0}
         self._close_stale_sessions(user_id=user_id, access_token=access_token)
+        search_query = _normalize_free_text(
+            data.get("q") or data.get("query") or data.get("search")
+        )
+        try:
+            limit = int(data.get("limit") or 50)
+        except Exception:
+            limit = 50
+        limit = min(max(limit, 1), 120)
         try:
             sessions = self.supabase.select(
                 "assistant_sessions",
                 params={
                     "user_id": f"eq.{user_id}",
                     "order": "last_message_at.desc.nullslast,updated_at.desc",
-                    "limit": "50",
+                    "limit": str(limit),
                 },
                 auth_token=access_token,
                 use_service_role=not bool(access_token),
@@ -2745,6 +2753,21 @@ JSON жауап:"""
                         continue
                     filtered.append(session)
                 sessions = filtered
+            if search_query:
+                searched: list[dict[str, Any]] = []
+                for session in sessions:
+                    haystack = _normalize_free_text(
+                        " ".join(
+                            [
+                                str((session or {}).get("title") or ""),
+                                str((session or {}).get("last_message_preview") or ""),
+                                str((session or {}).get("summary") or ""),
+                            ]
+                        )
+                    )
+                    if search_query in haystack:
+                        searched.append(session)
+                sessions = searched
             return {"sessions": sessions, "total": len(sessions)}
         except SupabaseServiceError as exc:
             logger.warning("Failed to list assistant sessions: %s", exc)
@@ -2771,6 +2794,65 @@ JSON жауап:"""
         except SupabaseServiceError as exc:
             logger.warning("Failed to get assistant session %s: %s", session_id, exc)
             return {"session_id": session_id, "messages": []}
+
+    def rename_session(self, data: dict) -> dict:
+        """Rename a specific chat session."""
+        session_id = str(data.get("session_id") or "").strip()
+        user_id = str(data.get("user_id") or "").strip()
+        access_token = str(data.get("_access_token") or "").strip() or None
+        raw_title = str(data.get("title") or data.get("new_title") or "").strip()
+        new_title = re.sub(r"\s+", " ", raw_title).strip()[:120]
+
+        if not user_id:
+            return {"success": False, "error": "user_id is required"}
+        if not _looks_like_uuid(session_id):
+            return {"success": False, "error": "invalid session_id"}
+        if not new_title:
+            return {"success": False, "error": "title is required"}
+
+        try:
+            updated = self.supabase.update(
+                "assistant_sessions",
+                {"id": f"eq.{session_id}", "user_id": f"eq.{user_id}"},
+                {"title": new_title},
+                auth_token=access_token,
+                use_service_role=not bool(access_token),
+            ) if self.supabase.available else []
+
+            if not updated:
+                return {"success": False, "error": "session not found"}
+
+            return {"success": True, "session": updated[0]}
+        except SupabaseServiceError as exc:
+            logger.warning("Failed to rename assistant session %s: %s", session_id, exc)
+            return {"success": False, "error": str(exc)}
+
+    def delete_session(self, data: dict) -> dict:
+        """Delete chat session and related messages for a user."""
+        session_id = str(data.get("session_id") or "").strip()
+        user_id = str(data.get("user_id") or "").strip()
+        access_token = str(data.get("_access_token") or "").strip() or None
+
+        if not user_id:
+            return {"success": False, "error": "user_id is required"}
+        if not _looks_like_uuid(session_id):
+            return {"success": False, "error": "invalid session_id"}
+
+        try:
+            deleted = self.supabase.delete(
+                "assistant_sessions",
+                {"id": f"eq.{session_id}", "user_id": f"eq.{user_id}"},
+                auth_token=access_token,
+                use_service_role=not bool(access_token),
+            ) if self.supabase.available else []
+
+            if not deleted:
+                return {"success": False, "error": "session not found"}
+
+            return {"success": True, "session_id": session_id}
+        except SupabaseServiceError as exc:
+            logger.warning("Failed to delete assistant session %s: %s", session_id, exc)
+            return {"success": False, "error": str(exc)}
 
 @lru_cache(maxsize=1)
 def get_openai_service() -> OpenAIService:

@@ -3,8 +3,14 @@ PDF Processing Service
 Uses PyMuPDF (fitz) to extract text from PDF files
 """
 
-import fitz  # PyMuPDF
 import io
+
+try:
+    import fitz  # PyMuPDF
+except Exception:
+    fitz = None
+
+from PyPDF2 import PdfReader
 
 
 def extract_text_from_pdf(pdf_file) -> str:
@@ -29,20 +35,24 @@ def extract_text_from_pdf(pdf_file) -> str:
         else:
             pdf_bytes = pdf_file
             
-        # Open PDF from bytes
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        
         text_content = []
-        
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            text = page.get_text("text")
-            if text.strip():
-                # Add page markers so the model can reference locations in large PDFs
-                text_content.append(f"[PAGE {page_num + 1}]\n{text.strip()}")
-        
-        doc.close()
-        
+
+        if fitz is not None:
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            for page_num in range(len(doc)):
+                page = doc.load_page(page_num)
+                text = page.get_text("text")
+                if text.strip():
+                    # Add page markers so the model can reference locations in large PDFs
+                    text_content.append(f"[PAGE {page_num + 1}]\n{text.strip()}")
+            doc.close()
+        else:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            for page_num, page in enumerate(reader.pages):
+                text = page.extract_text() or ""
+                if text.strip():
+                    text_content.append(f"[PAGE {page_num + 1}]\n{text.strip()}")
+
         return "\n\n".join(text_content)
         
     except Exception as e:
@@ -66,14 +76,19 @@ def get_pdf_info(pdf_file) -> dict:
         else:
             pdf_bytes = pdf_file
             
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        
-        info = {
-            "page_count": len(doc),
-            "metadata": doc.metadata,
-        }
-        
-        doc.close()
+        if fitz is not None:
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            info = {
+                "page_count": len(doc),
+                "metadata": doc.metadata,
+            }
+            doc.close()
+        else:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            info = {
+                "page_count": len(reader.pages),
+                "metadata": {},
+            }
         
         return info
         
